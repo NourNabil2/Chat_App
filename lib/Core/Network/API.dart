@@ -39,7 +39,7 @@ class APIs {
       isOnline: false,
       lastActive: '',
       pushToken: '',
-      friendRequests: '',);
+      friendRequests: '', userName: '',);
 
   // to return current user
   static User get user => auth.currentUser!;
@@ -59,7 +59,41 @@ class APIs {
     });
   }
 
+  // Function to check if the username is already taken
+  static Future<bool> checkIfUsernameExists(String userName) async {
+    final querySnapshot = await firestore
+        .collection(kUsersCollections)
+        .where('userName', isEqualTo: userName)
+        .get();
+    return querySnapshot.docs.isNotEmpty;
+  }
 
+  // Function to create a new user in Firestore
+  static Future<void> createUserInFirestore(
+      String userId,
+      String userName,
+      String email,
+      ) async {
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final chatUser = ChatUser(
+      id: userId,
+      name: userName,
+      email: email,
+      about: "Hey, I'm using ChatO!!",
+      image: '', // Placeholder image URL
+      status: 0,
+      createdAt: time,
+      isOnline: false,
+      lastActive: time,
+      pushToken: '',
+      userName: userName, // Set the username
+      friendRequests: '',
+    );
+
+    // Store the user in Firestore
+    await firestore.collection(kUsersCollections).doc(userId).set(chatUser.toJson());
+  }
   // for sending push notification
   static Future<void> sendPushNotification(ChatUser chatUser, String msg) async {
     try {
@@ -110,6 +144,7 @@ class APIs {
         status: 0,
         createdAt: time,
         isOnline: false,
+        userName: '',
         lastActive: time,
         friendRequests: '',
         pushToken: '',);
@@ -176,13 +211,20 @@ class APIs {
 
 
   ///************** Friend Request Related APIs **************
-// send Friend Request to User by email
-  static Future<bool> sendFriendRequest(String email, context) async {
+// Send Friend Request to User by username
+  static Future<bool> sendFriendRequestByUsername(String username, context) async {
+    // Query Firestore to find a user with the given username
     final data = await firestore
         .collection('Users')
-        .where('email', isEqualTo: email)
+        .where('userName', isEqualTo: username) // Change to search by username
         .limit(1)
         .get();
+
+    if (data.docs.isEmpty) {
+      // User doesn't exist
+      Dialogs.showSnackbar(context, 'User does not exist!');
+      return false;
+    }
 
     // Check if a friend request already exists
     final requestQuery = await firestore
@@ -193,25 +235,24 @@ class APIs {
         .get();
 
     // Check if a friend request already exists in my user
-    final UserExistsQuery = await firestore
+    final userExistsQuery = await firestore
         .collection('Users')
         .doc(data.docs.first.id)
         .collection('my_users')
         .doc(me.id)
         .get();
 
-
     if (requestQuery.docs.isNotEmpty) {
+      // Friend request already sent
       Dialogs.showSnackbar(context, 'Friend request already sent');
-      throw Exception('Friend request already sent');
-    } else if (UserExistsQuery.exists) {
-      Dialogs.showSnackbar(context, 'already Friend');
-      throw Exception('already Friend');
-    }
-
-    else if (data.docs.isNotEmpty && data.docs.first.id != user.uid) {
+      return false;
+    } else if (userExistsQuery.exists) {
+      // Already friends
+      Dialogs.showSnackbar(context, 'Already friends');
+      return false;
+    } else if (data.docs.first.id != user.uid) {
       // Create a friend request document
-      final s = await firestore
+      await firestore
           .collection('Users')
           .doc(data.docs.first.id)
           .collection('friendRequests')
@@ -221,16 +262,16 @@ class APIs {
         'name': me.name,
         'about': me.about,
         'Image': me.image,
-
       });
+      Dialogs.showSnackbar(context, 'Friend request sent successfully!');
       return true;
-    }
-    else {
-      //user doesn't exists
-
+    } else {
+      // User is the same as the current user (can't send request to yourself)
+      Dialogs.showSnackbar(context, 'Cannot send a friend request to yourself!');
       return false;
     }
   }
+
 
   static Stream<QuerySnapshot<Map<String, dynamic>>> getFriendRequests() {
     return firestore

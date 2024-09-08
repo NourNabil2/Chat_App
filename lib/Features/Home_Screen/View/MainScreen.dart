@@ -9,6 +9,7 @@ import '../../../Core/widgets/component.dart';
 import '../../Call_Screen/View/Call_Page.dart';
 import '../../Camera_Screen/View/Camera_Page.dart';
 import '../../Friend_Screen/View/Friend_Request_Page.dart';
+import '../../Map_Screen/View/Map_Screen.dart';
 import '../../Profile_Screen/View/Profile_Screen.dart';
 import '../../Status_Screen/view/statusInfo_Page.dart';
 import '../Model_View/home_cubit.dart';
@@ -33,7 +34,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
     tabController.animation!.addListener(() {
       final value = tabController.animation!.value.round();
-      if (value != HomeCubit.current && mounted) {
+      if (value != HomeCubit.current && mounted) { // Check if mounted
         setState(() {
           cubit.ChangePage(value);
         });
@@ -58,23 +59,25 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             dragStartBehavior: DragStartBehavior.down,
             physics: const BouncingScrollPhysics(),
             children: [
+              MapScreen(),
               HomeScreen(controller: ScrollController()),
-              const statusInfoPage(),
               CameraScreen(), // CameraScreen as the initial screen
+              const statusInfoPage(),
               const callPage(),
-
             ],
           ),
-          floatingActionButton: HomeCubit.current == 0 ? FloatingActionButton(
+          floatingActionButton: HomeCubit.current == 1
+              ? FloatingActionButton(
             shape: const CircleBorder(),
-            backgroundColor: Theme.of(context).primaryColor,
+            backgroundColor: Colors.blue,
             onPressed: () {
               setState(() {
                 addChatUserDialog(context);
               });
             },
             child: const Icon(Icons.add_comment_outlined, color: ColorApp.kwhiteColor),
-          ) : null,
+          )
+              : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
@@ -84,26 +87,28 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                 color: Colors.grey, // Color of the line
               ),
               SizedBox(
-                height: AppSize.s90,
+                height: AppSize.s80,
                 child: BottomNavigationBar(
                   currentIndex: HomeCubit.current,
                   iconSize: AppSize.s30,
                   onTap: (index) {
-                    setState(() {
-                      cubit.ChangePage(index);
-                      tabController.animateTo(index);
-                    });
+                    if (mounted) { // Check if mounted
+                      setState(() {
+                        cubit.ChangePage(index);
+                        tabController.animateTo(index);
+                      });
+                    }
                   },
                   selectedItemColor: Theme.of(context).secondaryHeaderColor,
                   unselectedItemColor: Theme.of(context).secondaryHeaderColor,
                   items: [
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.chat_bubble),
+                      icon: const Icon(Icons.location_on_rounded),
                       label: '',
                       backgroundColor: Theme.of(context).primaryColorDark,
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.play_arrow_sharp,size: 40,),
+                      icon: const Icon(Icons.chat_bubble),
                       label: '',
                       backgroundColor: Theme.of(context).primaryColorDark,
                     ),
@@ -117,7 +122,11 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                       label: '',
                       backgroundColor: Theme.of(context).primaryColorDark,
                     ),
-
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.play_arrow_sharp, size: 40),
+                      label: '',
+                      backgroundColor: Theme.of(context).primaryColorDark,
+                    ),
                   ],
                 ),
               ),
@@ -128,3 +137,4 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     );
   }
 }
+

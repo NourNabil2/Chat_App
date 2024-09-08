@@ -37,6 +37,6 @@ class AppSize
   static double s10 = 10.0;
   static double s15 = 15.0;
   static double s30 = 30.0;
-  static double s90 = 90.0;
+  static double s80 = 80.0;
   static double expande = 270.0;
 }

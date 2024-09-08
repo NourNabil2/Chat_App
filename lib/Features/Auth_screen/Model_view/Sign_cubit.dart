@@ -39,23 +39,46 @@ class SignCubit extends Cubit<SignState> {
 
   }
 
-  Future<void> registerUser({required String email ,required String password}) async {
+  Future<void> registerUser({
+    required String email,
+    required String password,
+    required String userName,
+  }) async {
     emit(RegisterLoading());
     try {
+      // Check if the username is already taken
+      final usernameExists = await APIs.checkIfUsernameExists(userName);
+      if (usernameExists) {
+        emit(RegisterError(messageError: 'Username is already taken'));
+        return;
+      }
 
-       UserCredential user = await FirebaseAuth.instance
+      // Create user with email and password
+      UserCredential user = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-       FirebaseAuth.instance.currentUser!.sendEmailVerification();
+
+      // Send email verification
+      await FirebaseAuth.instance.currentUser!.sendEmailVerification();
+
+      // Create a new user in Firestore with additional fields
+      await APIs.createUserInFirestore(
+        user.user!.uid,
+        userName,
+        email,
+      );
+
+      emit(RegisterSuccess());
     } on FirebaseAuthException catch (ex) {
       if (ex.code == 'weak-password') {
-        emit(RegisterErorr(messageErorr: 'weak-password'));
+        emit(RegisterError(messageError: 'Weak password'));
       } else if (ex.code == 'email-already-in-use') {
-        emit(RegisterErorr(messageErorr: 'email-already-in-use'));
+        emit(RegisterError(messageError: 'Email already in use'));
       }
     } catch (e) {
-      emit(RegisterErorr(messageErorr:  'there was an error'));
+      emit(RegisterError(messageError: 'There was an error'));
     }
   }
+
 
   Future<UserCredential?> _signInWithGoogle() async {
     emit(LoginLoading());

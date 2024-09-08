@@ -328,8 +328,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [                    // name input field
-        Text(AppString.name),
+      children: [
+        Text('User Name: ${widget.user.userName}'),
+        SizedBox(height: AppSize.s10,),
+        Text(AppString.name),// name input field
         CustomFormTextField(
           initialValue: widget.user.name,
           onSaved: (val) => APIs.me.name = val ?? 'your name',
@@ -340,6 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           initialValue: widget.user.about,
           onSaved: (val) => APIs.me.about = val ?? 'About me',
         ),
+
         Center(
           child: TextButton(onPressed: ()
           {

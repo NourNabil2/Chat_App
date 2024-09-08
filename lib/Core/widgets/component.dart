@@ -36,8 +36,7 @@ Widget signInWithText() {
 }
 
 void addChatUserDialog(context) {
-
-  String email = '';
+  String username = ''; // Changed from email to username
   showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -49,7 +48,7 @@ void addChatUserDialog(context) {
         //title
         title: Row(
           children: [
-             Icon(
+            Icon(
               Icons.person_add,
               color: Theme.of(context).textTheme.bodyMedium!.color,
             ),
@@ -59,9 +58,8 @@ void addChatUserDialog(context) {
 
         //content
         content: CustomFormTextField(
-          hintText: 'Email ID',
-          onChanged:(value) => email = value ,
-
+          hintText: 'Username', // Updated hint text
+          onChanged: (value) => username = value, // Updated variable name
         ),
 
         //actions
@@ -71,37 +69,36 @@ void addChatUserDialog(context) {
               onPressed: () {
                 //hide alert dialog
                 Navigator.pop(context);
-
               },
               child: Text('Cancel',
-                  style: Theme.of(context).textTheme.bodyMedium, )),
+                style: Theme.of(context).textTheme.bodyMedium, )),
 
           //add button
           MaterialButton(
               onPressed: () async {
                 //hide alert dialog
                 Navigator.pop(context);
-                if (email.isNotEmpty) {
-                  await APIs.sendFriendRequest(email,context).then((value) {
+                if (username.isNotEmpty) {
+                  await APIs.sendFriendRequestByUsername(username, context).then((value) { // Updated API call
                     if (!value) {
                       Dialogs.showSnackbar(
-                          context, 'User does not Exists!');
+                          context, 'User does not exist!');
                     }
                     else {
-
                       Dialogs.showSnackbar(
-                          context, 'Friend Request Send Successfully!');
+                          context, 'Friend request sent successfully!');
                     }
                   });
                 }
               },
-              child:  Text(
+              child: Text(
                 'Add',
                 style: Theme.of(context).textTheme.bodyMedium,
               ))
         ],
       ));
 }
+
 
 Widget Box({ double height =0 , double width =0})
 {

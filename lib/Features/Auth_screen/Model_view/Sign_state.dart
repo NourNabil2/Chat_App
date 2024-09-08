@@ -16,8 +16,8 @@ class LoginErorr extends SignState {
 class RegisterSuccess extends SignState {}
 class RegisterLoading extends SignState {}
 //ignore: must_be_immutable
-class RegisterErorr extends SignState {
-  String? messageErorr;
-  RegisterErorr({required messageErorr});
+class RegisterError extends SignState {
+  String? messageError;
+  RegisterError({required messageError});
 }
 

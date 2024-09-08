@@ -15,6 +15,8 @@ class RegisterPage extends StatelessWidget {
 
   String? email;
 
+  String? userName;
+
   String? password;
 
   bool isLoading = false;
@@ -36,9 +38,9 @@ class RegisterPage extends StatelessWidget {
         {
           Navigator.pushNamed(context, MainScreen.id);
         }
-        else if (state is RegisterErorr)
+        else if (state is RegisterError)
         {
-          showSnackBar(context, state.messageErorr!);
+          showSnackBar(context, state.messageError!);
         }
       },
       builder: (context, state) {
@@ -100,6 +102,16 @@ class RegisterPage extends StatelessWidget {
                     ),
                     CustomFormTextField(
                       onChanged: (data) {
+                        userName = data;
+                      },
+                      hintText: 'User Name',
+                    ),
+
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    CustomFormTextField(
+                      onChanged: (data) {
                         password = data;
                       },
                       hintText: 'Password',
@@ -110,7 +122,7 @@ class RegisterPage extends StatelessWidget {
                     CustomButon(
                       onTap: () async {
                         if (formKey.currentState!.validate()) {
-                          Cubit.registerUser(email: email!, password: password! );
+                          Cubit.registerUser(email: email!, password: password! , userName: userName! );
                         } else {}
                       },
                       text: 'REGISTER',

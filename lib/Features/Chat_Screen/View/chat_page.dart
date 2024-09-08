@@ -214,17 +214,34 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget chatInput(context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          vertical: 5, horizontal: 5),
+    return Container(
+      color: Theme.of(context).primaryColor,
       child: Row(
         children: [
+          //take image from camera button
+          IconButton(
+              onPressed: () async {
+                final ImagePicker picker = ImagePicker();
+                // Pick an image
+                final XFile? image = await picker.pickImage(
+                    source: ImageSource.camera, imageQuality: 70);
+                if (image != null) {
+                  log('Image Path: ${image.path}');
+                  setState(() => _isUploading = true);
+                  await APIs.sendChatImage(
+                      widget.user, File(image.path));
+                  setState(() => _isUploading = false);
+                }
+              },
+              icon: Icon(Icons.camera_alt_rounded,
+                  color: Theme.of(context).iconTheme.color, size: 26)),
           //input field & buttons
           Expanded(
             child: Card(
+
               color: Theme.of(context).primaryColorLight,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)),
+                  borderRadius: BorderRadius.circular(AppSize.s30)),
               child: Row(
                 children: [
                   //emoji button
@@ -247,7 +264,7 @@ class _ChatPageState extends State<ChatPage> {
                         },
                         decoration: InputDecoration(
                             hintText: 'Type Something...',
-                            hintStyle: TextStyle(color: Theme.of(context).iconTheme.color,fontSize: 16),
+                            hintStyle: TextStyle(color: Theme.of(context).iconTheme.color,fontSize: 12,overflow: TextOverflow.ellipsis),
                             border: InputBorder.none),
                       )),
 
@@ -270,23 +287,7 @@ class _ChatPageState extends State<ChatPage> {
                       icon: Icon(Icons.image,
                           color: Theme.of(context).iconTheme.color, size: 26)),
 
-                  //take image from camera button
-                  IconButton(
-                      onPressed: () async {
-                        final ImagePicker picker = ImagePicker();
-                        // Pick an image
-                        final XFile? image = await picker.pickImage(
-                            source: ImageSource.camera, imageQuality: 70);
-                        if (image != null) {
-                          log('Image Path: ${image.path}');
-                         setState(() => _isUploading = true);
-                          await APIs.sendChatImage(
-                              widget.user, File(image.path));
-                          setState(() => _isUploading = false);
-                        }
-                      },
-                      icon: Icon(Icons.camera_alt_rounded,
-                          color: Theme.of(context).iconTheme.color, size: 26)),
+
 
                   //adding some space
                   SizedBox(width: 10),
@@ -294,7 +295,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           ),
-
+SizedBox(width: 10,),
           //send message button
           MaterialButton(
             onPressed: () {
