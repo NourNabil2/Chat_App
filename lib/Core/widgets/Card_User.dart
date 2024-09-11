@@ -121,7 +121,7 @@ class _ChatUserCardState extends State<ChatUserCardState> {
               : _message!.read.isEmpty && _message!.fromId != APIs.user.uid ?
                   '🟦 Tap to View chat ${_streak == 0 ? '' : "| $_streak 🔥"}'
                   : '☐ Tap to View chat ${_streak == 0 ? '' : "| $_streak 🔥"}'
-                  : widget.user.about,
+                  : '☐ Tap to snap',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
@@ -143,7 +143,7 @@ class _ChatUserCardState extends State<ChatUserCardState> {
                     setState(() => _isUploading = false);
                   }
                 },
-                icon: Icon(Icons.camera_alt_rounded,
+                icon: Icon(Icons.camera_alt_outlined,
                     color: Theme.of(context).iconTheme.color, size: 26))
                 : _message!.read.isEmpty && _message!.fromId != APIs.user.uid
                 ? Container(
@@ -174,7 +174,7 @@ class _ChatUserCardState extends State<ChatUserCardState> {
                     setState(() => _isUploading = false);
                   }
                 },
-                icon: Icon(Icons.camera_alt_rounded,
+                icon: Icon(Icons.camera_alt_outlined,
                     color: Theme.of(context).iconTheme.color, size: 26))
           ),
         );
