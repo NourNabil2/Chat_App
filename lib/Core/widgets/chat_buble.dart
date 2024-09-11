@@ -1,9 +1,11 @@
 import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:saver_gallery/saver_gallery.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 import '../../Features/Chat_Screen/Data/message.dart';
 import '../Functions/Time_Format.dart';
@@ -218,8 +220,7 @@ class _MessageCardState extends State<MessageCard> {
                   onTap: () async {
                     try {
                       log('Image Url: ${widget.message.msg}');
-                      await GallerySaver.saveImage(widget.message.msg,
-                          albumName: 'We Chat') // todo
+                      await _saveNetworkImage(widget.message.msg) // todo
                           .then((success) {
                         //for hiding bottom sheet
                         Navigator.pop(context);
@@ -290,6 +291,23 @@ class _MessageCardState extends State<MessageCard> {
             ],
           );
         });
+  }
+  Future<bool> _saveNetworkImage(String path) async {
+    try{
+      var response = await Dio().get(
+          path,
+          options: Options(responseType: ResponseType.bytes));
+      final result = await SaverGallery.saveImage(
+          Uint8List.fromList(response.data),
+          quality: 60,
+          name: "hello", androidExistNotSave: false);
+      print(result);
+      return true;
+    }catch(e){
+      log('ErrorWhileSavingImg: $e');
+      return false;
+    }
+
   }
 
   //dialog for updating message content

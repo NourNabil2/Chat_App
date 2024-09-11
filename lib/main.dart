@@ -30,7 +30,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) async {
-    await FlutterNotificationChannel.registerNotificationChannel(
+    await FlutterNotificationChannel().registerNotificationChannel(
       description: 'For Showing Message Notification',
       id: 'chats',
       importance: NotificationImportance.IMPORTANCE_HIGH,

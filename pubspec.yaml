@@ -52,16 +52,18 @@ dependencies:
   cloud_firestore:
   firebase_storage:
   firebase_messaging:
-  flutter_notification_channel: ^2.0.0
+  flutter_notification_channel: ^3.1.0
   cached_network_image:
   image_picker:
-  emoji_picker_flutter: 1.5.1
-  gallery_saver: ^2.3.2
+  emoji_picker_flutter: ^3.0.0
+#  image_gallery_saver: ^2.0.3
   google_fonts:
   flutter_svg:
   carousel_slider:
   flutter_floating_bottom_bar: ^1.2.0
   shimmer: ^3.0.0
+  dio: ^5.7.0
+  saver_gallery: ^3.0.6
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,9 +2,12 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:chats/Features/Camera_Screen/View/ChatList_Select_Page.dart';
 import 'package:chats/Features/Camera_Screen/View/Widgets/button.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:saver_gallery/saver_gallery.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 import '../../../Core/Functions/show_snack_bar.dart';
 import 'Select_Page.dart';
@@ -81,12 +84,16 @@ class _CameraScreenState extends State<CameraScreen> {
   Future<void> _savePicture() async {
     if (_imagePath == null) return;
     try {
-      final success = await GallerySaver.saveImage(
-        _imagePath!,
-        albumName: 'We Chat',
+      final success = await SaverGallery.saveImage(
+        IMAGE!.readAsBytesSync(),
+        name: 'test.jpg',
+        androidExistNotSave: false,
+        // fileExtension: 'jpg',
+
+        // albumName: 'We Chat',
       );
 
-      if (success != null && success) {
+      if (success.isSuccess != null && success.isSuccess) {
         // Show success message
         Dialogs.showSnackbar(context, 'Image successfully saved!');
       } else {
@@ -98,6 +105,21 @@ class _CameraScreenState extends State<CameraScreen> {
       log('Error while saving image: $e');
       Dialogs.showSnackbar(context, 'An error occurred while saving the image.');
     }
+  }
+  _saveImage({required String url}) async {
+    var response = await Dio().get(
+        url,
+        options: Options(responseType: ResponseType.bytes));
+    String picturesPath = "test_jpg.gif";
+    debugPrint(picturesPath);
+    final result = await SaverGallery.saveImage(
+      Uint8List.fromList(response.data),
+      quality: 60,
+      name: picturesPath,
+      androidRelativePath: "Pictures/appName/xx",
+      androidExistNotSave: false,
+    );
+    debugPrint(result.toString());
   }
 
   void _sendPicture() {
