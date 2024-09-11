@@ -113,9 +113,14 @@ class _ChatUserCardState extends State<ChatUserCardState> {
             // Last message
             subtitle: Text(
               _message != null
-                  ? _message!.type == Type.image
-                  ? 'image ${_streak == 0 ? '' : "| $_streak 🔥"}'
-                  : '${_message!.msg} ${_streak == 0 ? '' : "| $_streak 🔥"}'
+                  ? _message!.type == Type.image ?
+              _message!.read.isEmpty && _message!.fromId != APIs.user.uid ?
+              '🟥 Tap to View Image ${_streak == 0 ? '' : "| $_streak 🔥"}'
+              :
+              '☐ Opened ${_streak == 0 ? '' : "| $_streak 🔥"}'
+              : _message!.read.isEmpty && _message!.fromId != APIs.user.uid ?
+                  '🟦 Tap to View chat ${_streak == 0 ? '' : "| $_streak 🔥"}'
+                  : '☐ Tap to View chat ${_streak == 0 ? '' : "| $_streak 🔥"}'
                   : widget.user.about,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -155,13 +160,22 @@ class _ChatUserCardState extends State<ChatUserCardState> {
                 ),
               ),
             )
-                : Text(
-              Format_Time.getLastMessageTime(
-                context: context,
-                time: _message!.sent,
-              ),
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
+                : IconButton(
+                onPressed: () async {
+                  final ImagePicker picker = ImagePicker();
+                  // Pick an image
+                  final XFile? image = await picker.pickImage(
+                      source: ImageSource.camera, imageQuality: 70);
+                  if (image != null) {
+                    log('Image Path: ${image.path}');
+                    setState(() => _isUploading = true);
+                    await APIs.sendChatImage(
+                        widget.user, File(image.path));
+                    setState(() => _isUploading = false);
+                  }
+                },
+                icon: Icon(Icons.camera_alt_rounded,
+                    color: Theme.of(context).iconTheme.color, size: 26))
           ),
         );
       },
