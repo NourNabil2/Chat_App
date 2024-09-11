@@ -128,7 +128,6 @@ class _ChatPageState extends State<ChatPage> {
                   child: EmojiPicker(
                     textEditingController: controller,
                     config: Config(
-                    columns: 8,emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0) ,
 
                     ),
                   ),
