@@ -30,6 +30,7 @@ class _chatsListState extends State<chatsList> {
         }
       },
       builder: (context, state) {
+
         UserList = (state is getAlluser) ? state.UserList : [];
         searchList = (state is ChatsDisplaylist) ? state.searchList : [];
         return SliverList(

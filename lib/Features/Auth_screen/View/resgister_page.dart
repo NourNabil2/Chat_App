@@ -13,7 +13,7 @@ import '../Model_view/Sign_cubit.dart';
 class RegisterPage extends StatelessWidget {
   static String id = 'RegisterPage';
 
-  String? email;
+
 
   String? userName;
 
@@ -91,15 +91,7 @@ class RegisterPage extends StatelessWidget {
                     const SizedBox(
                       height: 20,
                     ),
-                    CustomFormTextField(
-                      onChanged: (data) {
-                        email = data;
-                      },
-                      hintText: 'Email',
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
+
                     CustomFormTextField(
                       onChanged: (data) {
                         userName = data;
@@ -115,14 +107,22 @@ class RegisterPage extends StatelessWidget {
                         password = data;
                       },
                       hintText: 'Password',
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.length < 6) {
+                          return 'Password must be at least 6 characters long.';
+                        }
+                        return null; // Return null if validation passes
+                      },
                     ),
+
                     const SizedBox(
                       height: 20,
                     ),
                     CustomButon(
                       onTap: () async {
                         if (formKey.currentState!.validate()) {
-                          Cubit.registerUser(email: email!, password: password! , userName: userName! );
+                          Cubit.registerUser(email: '$userName@chato.com', password: password! , userName: userName! );
                         } else {}
                       },
                       text: 'REGISTER',

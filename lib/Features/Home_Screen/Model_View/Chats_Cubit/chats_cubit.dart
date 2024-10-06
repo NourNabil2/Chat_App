@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -9,6 +8,8 @@ import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Home_Screen/View/Widgets/AppBar_Sliver_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../Friend_Screen/Data/FriendRequest.dart';
 part 'chats_state.dart';
 
 class ChatsCubit extends Cubit<ChatsState> {
@@ -16,6 +17,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   static ChatsCubit get(context) => BlocProvider.of(context);
   static bool isSearching = false;
   List<String> userIds = [];
+
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> getMyUsersId() {
     return APIs.firestore
@@ -55,11 +57,11 @@ class ChatsCubit extends Cubit<ChatsState> {
     },);
   }
 
-void ChangeSearchIcon()
-{
-  isSearching = !isSearching;
-  emit(SearchIconState(UserList: UserList));
-}
+  void ChangeSearchIcon()
+  {
+    isSearching = !isSearching;
+    emit(SearchIconState(UserList: UserList));
+  }
 
   void search(query) {
     if (query.isEmpty) {
@@ -70,7 +72,5 @@ void ChangeSearchIcon()
       }).toList();
       emit(ChatsDisplaylist(UserList: UserList, searchList: searchList, isSearching: true));
     }
-    }
   }
-
-
+}

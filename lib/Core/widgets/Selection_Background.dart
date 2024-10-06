@@ -10,6 +10,7 @@ Widget customSelection( int selected , context,ProfileCubit)
    // padding: EdgeInsets.all(8),
     scrollDirection: Axis.horizontal,
     child: Row(children: [
+      customOutlineButton(0, selected , context ,bg_Defualt ),
       customOutlineButton(1, selected , context , bg_black),
       customOutlineButton(2, selected , context , bg_black2),
       customOutlineButton(3, selected , context , bg_white),

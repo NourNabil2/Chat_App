@@ -19,7 +19,8 @@ class Message {
     toId = json['toId'].toString();
     msg = json['msg'].toString();
     read = json['read'].toString();
-    type = json['type'].toString() == Type.image.name ? Type.image : Type.text;
+    // Handling the type field to include video
+    type = json['type'].toString() == Type.image.name ? Type.image : json['type'].toString() == Type.video.name ? Type.video : Type.text;
     fromId = json['fromId'].toString();
     sent = json['sent'].toString();
   }
@@ -36,4 +37,4 @@ class Message {
   }
 }
 
-enum Type { text, image }
+enum Type { text, image ,video }

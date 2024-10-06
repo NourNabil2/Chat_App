@@ -1,12 +1,7 @@
-
-import 'package:chats/Core/Utils/Colors.dart';
 import 'package:chats/Core/widgets/custom_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../../Features/Home_Screen/Model_View/home_cubit.dart';
 import '../Functions/show_snack_bar.dart';
 import '../Network/API.dart';
 

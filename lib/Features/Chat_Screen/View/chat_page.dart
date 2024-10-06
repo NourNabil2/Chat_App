@@ -8,6 +8,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
 import '../../../Core/Functions/Time_Format.dart';
 import '../../../Core/Network/API.dart';
 import '../../../Core/Utils/Colors.dart';
@@ -42,7 +43,27 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-   // ChatCubit Cubit = BlocProvider.of<ChatCubit>(context);
+    void deleteOldMessages() {
+      DateTime currentTime = DateTime.now();
+
+      // Loop through the messagesList and check each message
+      for (var message in messagesList) {
+        // Convert the sent property from String to int, then to DateTime
+        int messageTimestamp = int.parse(message.sent); // Convert string to int
+        DateTime messageTime = DateTime.fromMillisecondsSinceEpoch(messageTimestamp); // Create DateTime
+
+        // Calculate the difference between now and when the message was sent
+        Duration difference = currentTime.difference(messageTime);
+
+        // If the message is older than 24 hours (1 day)
+        if (difference.inHours >= 24) {
+          APIs.deleteMessage(message); // Call the delete API or function
+        }
+      }
+    }
+
+
+    // ChatCubit Cubit = BlocProvider.of<ChatCubit>(context);
     return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
     child: SafeArea(
@@ -67,8 +88,8 @@ class _ChatPageState extends State<ChatPage> {
         ),
         body: Container(
           decoration: BoxDecoration(
-              color: ColorApp.kwhiteColor,
-              image: DecorationImage(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              image:ProfileCubit.get(context).selected == 0 ?  null : DecorationImage(
                   image: AssetImage(
                       ProfileCubit.get(context).selected == 1 ? bg_black : ProfileCubit.get(context).selected == 2 ? bg_black2 : bg_white
                   ), fit: BoxFit.cover)),
@@ -76,41 +97,40 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               Expanded(
                 child:StreamBuilder(
-          stream: APIs.getAllMessages(widget.user),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-            //if data is loading
-              case ConnectionState.waiting:
-              case ConnectionState.none:
-                return const SizedBox();
+                  stream: APIs.getAllMessages(widget.user),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.none:
+                        return const SizedBox();
 
-            //if some or all data is loaded then show it
-              case ConnectionState.active:
-              case ConnectionState.done:
-                final data = snapshot.data?.docs;
-                messagesList = data
-                    ?.map((e) => Message.fromJson(e.data()))
-                    .toList() ??
-                    [];
+                      case ConnectionState.active:
+                      case ConnectionState.done:
+                        final data = snapshot.data?.docs;
+                        messagesList = data?.map((e) => Message.fromJson(e.data())).toList() ?? [];
 
-                if (messagesList.isNotEmpty) {
-                  return ListView.builder(
-                      reverse: true,
-                      itemCount: messagesList.length,
-                      padding: const EdgeInsets.only(top: 10),
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return MessageCard(message: messagesList[index]);
-                      });
-                } else {
-                  return  Center(
-                    child: Text(AppString.hi,
-                        style: Theme.of(context).textTheme.titleMedium),
-                  );
-                }
-            }
-          },
+                        // Call the deleteOldMessages function to clean up old messages
+                        deleteOldMessages();
+
+                        if (messagesList.isNotEmpty) {
+                          return ListView.builder(
+                            reverse: true,
+                            itemCount: messagesList.length,
+                            padding: const EdgeInsets.only(top: 10),
+                            physics: const BouncingScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              return MessageCard(message: messagesList[index]);
+                            },
+                          );
+                        } else {
+                          return Center(
+                            child: Text('No messages', style: Theme.of(context).textTheme.titleMedium),
+                          );
+                        }
+                    }
+                  },
                 ),
+
               ),
 
               //progress indicator for showing uploading
@@ -195,15 +215,7 @@ class _ChatPageState extends State<ChatPage> {
 
                      // last seen time of user
                       Text(
-                          list.isNotEmpty
-                              ? list[0].isOnline
-                              ? 'Online'
-                              : Format_Time.getLastActiveTime(
-                              context: context,
-                              lastActive: list[0].lastActive)
-                              : Format_Time.getLastActiveTime(
-                              context: context,
-                              lastActive: widget.user.lastActive),
+                          list.isNotEmpty ? list[0].isOnline ? 'Online' : "" :"",
                           style: Theme.of(context).textTheme.bodySmall, ),
                     ],
                   )
@@ -218,6 +230,32 @@ class _ChatPageState extends State<ChatPage> {
       child: Row(
         children: [
           //take image from camera button
+          IconButton(
+            onPressed: () async {
+              final ImagePicker picker = ImagePicker();
+              // Pick a video
+              final XFile? video = await picker.pickVideo(
+                source: ImageSource.camera, // You can also change this to ImageSource.gallery if needed
+                maxDuration: const Duration(seconds: 60), // Set a max duration if desired
+              );
+
+              if (video != null) {
+                log('Video Path: ${video.path}');
+                setState(() => _isUploading = true);
+
+                // Sending the video
+                await APIs.sendChatVideo(widget.user, File(video.path));
+
+                setState(() => _isUploading = false);
+              }
+            },
+            icon: Icon(
+              Icons.videocam_rounded, // Changed the icon to video camera icon
+              color: Theme.of(context).iconTheme.color,
+              size: 26,
+            ),
+          ),
+
           IconButton(
               onPressed: () async {
                 final ImagePicker picker = ImagePicker();

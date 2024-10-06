@@ -16,12 +16,13 @@ Size? mq;
 const bg_black = 'assets/images/bg_chat_black.jpg';
 const bg_black2 = 'assets/images/bg_chat_black2.jpg';
 const bg_white = 'assets/images/bg_chat_white.jpg';
+const bg_Defualt = 'assets/images/cancel.png';
 // String of App
 class AppString
 {
   static String stheme = 'Theme of App';
   static String sLog = 'LOGOUT';
-  static String sedit = 'UPDATE';
+  static String sedit = 'Update';
   static String name = 'Your Name';
   static String about = 'About You';
   static String themechat = 'Background';
@@ -29,7 +30,7 @@ class AppString
   static String hi = 'Say Hii! 👋';
   static String img = 'Image';
   static String chats = 'Chats';
-  static String searchBar = 'Name, Email, ...';
+  static String searchBar = 'Search';
 }
 class AppSize
 {
@@ -38,5 +39,6 @@ class AppSize
   static double s15 = 15.0;
   static double s30 = 30.0;
   static double s80 = 80.0;
+  static double s160 = 160.0;
   static double expande = 270.0;
 }

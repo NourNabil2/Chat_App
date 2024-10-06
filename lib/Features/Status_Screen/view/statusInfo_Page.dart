@@ -28,7 +28,7 @@ class _statusInfoPageState extends State<statusInfoPage> {
       builder: (context, state) {
         UserList = (state is getAlluser) ? state.UserList : [];
 log('user Story list ${UserList.length}');
-        return UserProfilePage(userList: UserList);
+        return UserList.isEmpty ? Container(color: Theme.of(context).scaffoldBackgroundColor,child: Center(child: Text('No Stories',style: Theme.of(context).textTheme.headlineMedium,),),): UserProfilePage(userList: UserList);
       },
     );
   }

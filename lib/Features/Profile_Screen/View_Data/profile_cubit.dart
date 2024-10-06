@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chats/Core/Functions/CashSaver.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 part 'profile_state.dart';
@@ -21,6 +23,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   {
     CashSaver.SaveData(key: 'selected', value: index);
     selected = index ;
+    log("$selected");
     emit(changeSelecteState());
   }
 

@@ -16,6 +16,7 @@ import 'Core/Utils/Colors.dart';
 import 'Features/Auth_screen/View/login_page.dart';
 import 'Features/Auth_screen/View/resgister_page.dart';
 import 'Features/Chat_Screen/Model_View/chat_cubit.dart';
+import 'Features/Home_Screen/Model_View/freiend_request_cubit.dart';
 import 'Features/Home_Screen/Model_View/home_cubit.dart';
 import 'Features/Home_Screen/View/MainScreen.dart';
 import 'firebase_options.dart';
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => SignCubit()),
+        BlocProvider(create: (context) => FreiendRequestCubit()),
         BlocProvider(create: (context) => ChatCubit()),
         BlocProvider(create: (context) => HomeCubit()),
         BlocProvider(create: (context) => ProfileCubit()),

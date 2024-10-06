@@ -66,18 +66,6 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
               const callPage(),
             ],
           ),
-          floatingActionButton: HomeCubit.current == 1
-              ? FloatingActionButton(
-            shape: const CircleBorder(),
-            backgroundColor: Colors.blue,
-            onPressed: () {
-              setState(() {
-                addChatUserDialog(context);
-              });
-            },
-            child: const Icon(Icons.add_comment_outlined, color: ColorApp.kwhiteColor),
-          )
-              : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,

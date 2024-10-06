@@ -9,6 +9,8 @@ import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../Core/Utils/Colors.dart';
+
 class FriendRequestPage extends StatefulWidget {
   const FriendRequestPage({super.key, required ChatUser user});
 
@@ -29,6 +31,18 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
         elevation: 0,
         title: Text('Friend Requests',style: Theme.of(context).textTheme.bodyMedium,),
       ),
+      floatingActionButton:
+          FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: Colors.blue,
+        onPressed: () {
+          setState(() {
+            addChatUserDialog(context);
+          });
+        },
+        child: const Icon(Icons.add_comment_outlined, color: ColorApp.kwhiteColor),
+      ),
+
       body: StreamBuilder(
           stream: APIs.getFriendRequests(),
           builder: (context, snapshot) {
@@ -48,9 +62,12 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
 
             final data = snapshot.data?.docs;
             for (var i in data!) {
-              FriendRequesList =
-                  data.map((e) => Friendrequest.fromJson(e.data())).toList() ??
-                      [];
+
+                FriendRequesList =
+                    data.map((e) => Friendrequest.fromJson(e.data())).toList() ??
+                        [];
+
+
             }
 
             if (FriendRequesList.isEmpty) {

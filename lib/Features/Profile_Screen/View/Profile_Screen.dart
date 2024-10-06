@@ -208,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 // for adding some space
                       SizedBox(height: 10),
 // user email label
-                      Text(widget.user.email,
+                      Text(widget.user.name,
                           style: Theme.of(context).textTheme.bodyMedium
                       ),
                     ],

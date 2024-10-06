@@ -51,7 +51,7 @@ class LoginPage extends StatelessWidget {
           });
 
 
-        } else if (state is LoginErorr) {
+        } else if (state is LoginError) {
           isLoading = false;
           showSnackBar(context, state.messageErorr!);
         }
@@ -86,7 +86,7 @@ class LoginPage extends StatelessWidget {
                     onChanged: (data) {
                       email = data;
                     },
-                    hintText: 'Email',
+                    hintText: 'User Name',
                   ),
                   CustomFormTextField(
                     obscureText: true,
@@ -99,7 +99,7 @@ class LoginPage extends StatelessWidget {
                   CustomButon(
                     onTap: () async {
                       if (formKey.currentState!.validate()) {
-                        Cubit.loginUser(email: email!, password: password!);
+                        Cubit.loginUser(username: email!, password: password!);
                       } else {}
                     },
                     text: 'LOGIN',
@@ -107,12 +107,12 @@ class LoginPage extends StatelessWidget {
                   Box(height: 20),
                   signInWithText(),
                   Box(height: 20),
-                  GoogleButon(
-                    onTap: () {
-                      Cubit.handleGoogleBtnClick();
-                    },
-                    text: 'Sgin In With Google',
-                  ),
+                  // GoogleButon(
+                  //   onTap: () {
+                  //     Cubit.handleGoogleBtnClick();
+                  //   },
+                  //   text: 'Sgin In With Google',
+                  // ),
                   Box(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

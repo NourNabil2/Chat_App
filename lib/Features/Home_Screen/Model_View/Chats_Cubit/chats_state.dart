@@ -14,6 +14,8 @@ class SearchIconState extends ChatsState {
   SearchIconState({required this.UserList});
 }
 
+
+
 class SearchListChangeState extends ChatsState {}
 
 class ChatsDisplaylist extends ChatsState {

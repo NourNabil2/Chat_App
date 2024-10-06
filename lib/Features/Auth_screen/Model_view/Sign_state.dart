@@ -8,9 +8,9 @@ class SignInitial extends SignState {}
 class LoginSuccess extends SignState {}
 class LoginLoading extends SignState {}
 
-class LoginErorr extends SignState {
+class LoginError extends SignState {
  final String? messageErorr;
-  LoginErorr(this.messageErorr);
+ LoginError(this.messageErorr);
 }
 
 class RegisterSuccess extends SignState {}

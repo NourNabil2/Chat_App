@@ -9,8 +9,10 @@ import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.da
 import '../../../Core/Network/API.dart';
 
 class SelectUsers extends StatefulWidget {
-  final File? selectedImage;
-  const SelectUsers({super.key, this.selectedImage});
+  final File? selectedMedia; // Changed to selectedMedia to support both images and videos
+  final bool isVideo; // Flag to determine if the selected media is a video
+
+  const SelectUsers({super.key, this.selectedMedia, this.isVideo = false}); // Default isVideo to false
 
   @override
   State<SelectUsers> createState() => _SelectUsersState();
@@ -21,20 +23,25 @@ class _SelectUsersState extends State<SelectUsers> {
   List<ChatUser> searchList = [];
   List<ChatUser> selectedUsers = []; // List to store selected users
 
-  // Function to send the selected image to multiple users
-  void _sendImage() async{
-    if (widget.selectedImage != null && selectedUsers.isNotEmpty) {
-      // Call your function to send the image to multiple users
-      APIs.sendChatImageToMultipleUsers(selectedUsers, widget.selectedImage!);
-      Dialogs.showSnackbar(context, 'Send Successfully');
+  // Function to send the selected media (image or video) to multiple users
+  void _sendMedia() async {
+    if (widget.selectedMedia != null && selectedUsers.isNotEmpty) {
+      if (widget.isVideo) {
+        // Call your function to send the video to multiple users
+        await APIs.sendChatVideoToMultipleUsers(selectedUsers, widget.selectedMedia!);
+      } else {
+        // Call your function to send the image to multiple users
+        await APIs.sendChatImageToMultipleUsers(selectedUsers, widget.selectedMedia!);
+      }
+      Dialogs.showSnackbar(context, 'Sent Successfully');
       // Add strike to each selected user
-      for (var user in selectedUsers)   {
+      for (var user in selectedUsers) {
         await APIs.addOrUpdateStreak(user.id); // Assuming `addStrikeToUser` accepts a user ID
       }
       Navigator.pop(context);
-    } else if (selectedUsers.isEmpty){
+    } else if (selectedUsers.isEmpty) {
       Dialogs.showSnackbar(context, 'No User Selected');
-    }else {
+    } else {
       Dialogs.showSnackbar(context, 'Unexpected Error');
     }
   }
@@ -97,9 +104,9 @@ class _SelectUsersState extends State<SelectUsers> {
               right: 16,
               child: FloatingActionButton(
                 backgroundColor: Theme.of(context).primaryColor,
-                onPressed: _sendImage, // You can use any icon you prefer
-                tooltip: 'Send Image', // Call the function to send the image
-                child:  Icon(Icons.send,color: Theme.of(context).secondaryHeaderColor,),
+                onPressed: _sendMedia, // Call the function to send the media
+                tooltip: 'Send Media',
+                child: Icon(Icons.send, color: Theme.of(context).secondaryHeaderColor),
               ),
             ),
           ],

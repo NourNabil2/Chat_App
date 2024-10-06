@@ -97,7 +97,7 @@ class StoryDialog extends StatelessWidget {
           width: mq.width * .6,
           height: mq.height * .35,
           child: StreamBuilder(
-            stream: APIs.getStoryImage(user),
+            stream: APIs.getStoryMedia(user),
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
               //if data is loading

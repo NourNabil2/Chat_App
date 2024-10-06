@@ -39,7 +39,8 @@ class APIs {
       isOnline: false,
       lastActive: '',
       pushToken: '',
-      friendRequests: '', userName: '',);
+      friendRequests: '',
+      userName: '',);
 
   // to return current user
   static User get user => auth.currentUser!;
@@ -281,6 +282,30 @@ class APIs {
         .snapshots();
   }
 
+  // Function to delete a friend from both the user's and friend's my_users collections
+  static Future<void> deleteFriend(ChatUser friend) async {
+    try {
+      // Delete friend from current user's my_users collection
+      await firestore
+          .collection(kUsersCollections)
+          .doc(user.uid)
+          .collection('my_users')
+          .doc(friend.id)
+          .delete();
+
+      // Delete current user from friend's my_users collection
+      await firestore
+          .collection(kUsersCollections)
+          .doc(friend.id)
+          .collection('my_users')
+          .doc(user.uid)
+          .delete();
+      log('Successfully removed friend: ${friend.id}');
+    } catch (e) {
+      log('Failed to remove friend: $e');
+    }
+  }
+
   //delete FriendRequest
   static Future<void> deleteFriendRequest(Friendrequest request) async {
     final requestQuery = await firestore
@@ -431,24 +456,116 @@ class APIs {
 
   ///************** Story Related APIs **************
   // update profile picture of user
+  // static Stream<int> getStatusCount() {
+  //   return firestore
+  //       .collection('Status')
+  //       .doc(me.email)
+  //       .collection('image')
+  //       .snapshots()
+  //       .map((snapshot) => snapshot.docs.length);
+  // }
+  //
+  // static Timer deleteStatus(time, ext) {
+  //   return Timer(const Duration(days: 1), () async {
+  //     firestore
+  //         .collection('Status/${me.email}/image/')
+  //         .doc(time).delete();
+  //     storage.ref().child(
+  //         'Story_pictures/${me.email} ${DateTime
+  //             .now()
+  //             .millisecondsSinceEpoch}.$ext').delete();
+  //
+  //     // Get friend request count
+  //     final StatusCountStream = getStatusCount();
+  //     final StatusCount = await StatusCountStream.first;
+  //
+  //     firestore.collection('Users').doc(user.uid).update({
+  //       'story': StatusCount,
+  //     });
+  //   },);
+  // }
+  //
+  // static Future<void> sendStoryImage(File file) async {
+  //   //message sending time (also used as id)
+  //   final time = DateTime
+  //       .now()
+  //       .millisecondsSinceEpoch
+  //       .toString();
+  //   //getting image file extension
+  //   final ext = file.path
+  //       .split('.')
+  //       .last;
+  //
+  //   //storage file ref with path
+  //   final ref = storage.ref().child(
+  //       'Story_pictures/${me.email} ${DateTime
+  //           .now()
+  //           .millisecondsSinceEpoch}.$ext');
+  //   //uploading image
+  //   await ref
+  //       .putFile(file, SettableMetadata(contentType: 'image/$ext'))
+  //       .then((p0) {
+  //     log('Data Transferred: ${p0.bytesTransferred / 1000} kb');
+  //   });
+  //
+  //   //updating image in firestore database
+  //   final imageUrl = await ref.getDownloadURL();
+  //   //message to send
+  //   final Status status = Status(
+  //
+  //       status: imageUrl,
+  //       image: me.image,
+  //       seen: [],
+  //       fromname: me.name,
+  //       type: Type_s.image,
+  //       fromId: user.uid,
+  //       sent: time);
+  //
+  //   final sent = firestore
+  //       .collection('Status/${me.email}/image/');
+  //   await sent.doc(time).set(status.toJson());
+  //
+  //   // Get friend request count
+  //   final StatusCountStream = getStatusCount();
+  //   final StatusCount = await StatusCountStream.first;
+  //
+  //   firestore.collection('Users').doc(user.uid).update({
+  //     'story': StatusCount,
+  //   });
+  //
+  //   deleteStatus(time, ext);
+  // }
+  //
+  // static Stream<QuerySnapshot<Map<String, dynamic>>> getStoryImage(
+  //     ChatUser user) {
+  //   return firestore
+  //       .collection('Status/${user.email}/image/')
+  //       .orderBy('sent', descending: true)
+  //       .snapshots();
+  // }
+
+///
+// Update profile picture of user
   static Stream<int> getStatusCount() {
     return firestore
         .collection('Status')
         .doc(me.email)
-        .collection('image')
+        .collection('media')
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }
 
-  static Timer deleteStatus(time, ext) {
+  static Timer deleteStatus(String time, String ext, bool isVideo) {
     return Timer(const Duration(days: 1), () async {
-      firestore
-          .collection('Status/${me.email}/image/')
-          .doc(time).delete();
-      storage.ref().child(
-          'Story_pictures/${me.email} ${DateTime
-              .now()
-              .millisecondsSinceEpoch}.$ext').delete();
+      // Deleting the media from Firestore
+      firestore.collection('Status/${me.email}/media/').doc(time).delete();
+
+      // Delete the media from Firebase Storage (image or video)
+      String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
+      storage
+          .ref()
+          .child('$fileType/${me.email} ${DateTime.now().millisecondsSinceEpoch}.$ext')
+          .delete();
 
       // Get friend request count
       final StatusCountStream = getStatusCount();
@@ -457,47 +574,43 @@ class APIs {
       firestore.collection('Users').doc(user.uid).update({
         'story': StatusCount,
       });
-    },);
+    });
   }
 
-  static Future<void> sendStoryImage(File file) async {
-    //message sending time (also used as id)
-    final time = DateTime
-        .now()
-        .millisecondsSinceEpoch
-        .toString();
-    //getting image file extension
-    final ext = file.path
-        .split('.')
-        .last;
+  static Future<void> sendStoryMedia(File file, {bool isVideo = false}) async {
+    // Message sending time (also used as ID)
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
 
-    //storage file ref with path
-    final ref = storage.ref().child(
-        'Story_pictures/${me.email} ${DateTime
-            .now()
-            .millisecondsSinceEpoch}.$ext');
-    //uploading image
-    await ref
-        .putFile(file, SettableMetadata(contentType: 'image/$ext'))
-        .then((p0) {
+    // Ensure that videos are saved as `.mp4` files
+    String ext = isVideo ? 'mp4' : file.path.split('.').last;
+
+    // Storage file reference path (distinguish between image and video)
+    String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
+    final ref = storage
+        .ref()
+        .child('$fileType/${me.email} ${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+    // Uploading media
+    await ref.putFile(file, SettableMetadata(contentType: isVideo ? 'video/$ext' : 'image/$ext')).then((p0) {
       log('Data Transferred: ${p0.bytesTransferred / 1000} kb');
     });
 
-    //updating image in firestore database
-    final imageUrl = await ref.getDownloadURL();
-    //message to send
+    // Getting the media URL
+    final mediaUrl = await ref.getDownloadURL();
+
+    // Message to send
     final Status status = Status(
+      status: mediaUrl,
+      image: me.image,
+      seen: [],
+      fromname: me.name,
+      type: isVideo ? Type_s.video : Type_s.image,
+      fromId: user.uid,
+      sent: time,
+    );
 
-        status: imageUrl,
-        image: me.image,
-        seen: [],
-        fromname: me.name,
-        type: Type_s.image,
-        fromId: user.uid,
-        sent: time);
-
-    final sent = firestore
-        .collection('Status/${me.email}/image/');
+    // Save the media to Firestore
+    final sent = firestore.collection('Status/${me.email}/media/');
     await sent.doc(time).set(status.toJson());
 
     // Get friend request count
@@ -508,13 +621,15 @@ class APIs {
       'story': StatusCount,
     });
 
-    deleteStatus(time, ext);
+    // Delete media after 24 hours
+    deleteStatus(time, ext, isVideo);
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getStoryImage(
-      ChatUser user) {
+
+// Retrieve story images or videos
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getStoryMedia(ChatUser user) {
     return firestore
-        .collection('Status/${user.email}/image/')
+        .collection('Status/${user.email}/media/')
         .orderBy('sent', descending: true)
         .snapshots();
   }
@@ -538,6 +653,8 @@ class APIs {
         .orderBy('sent', descending: true)
         .snapshots();
   }
+
+
 
   // for sending message
   static Future<void> sendMessage(ChatUser chatUser, String msg,
@@ -583,6 +700,28 @@ class APIs {
         .orderBy('sent', descending: true)
         .limit(5)
         .snapshots();
+  }
+
+
+  ///************** Send Functions APIs **************
+  //send chat video
+  static Future<void> sendChatVideo(ChatUser chatUser, File file) async {
+    //getting video file extension
+    final ext = file.path.split('.').last;
+
+    //storage file ref with path
+    final ref = storage.ref().child(
+      'videos/${getConversationID(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext',
+    );
+
+    //uploading video
+    await ref.putFile(file, SettableMetadata(contentType: 'video/$ext')).then((p0) {
+      log('Data Transferred: ${p0.bytesTransferred / 1000} kb');
+    });
+
+    //updating video URL in Firestore database
+    final videoUrl = await ref.getDownloadURL();
+    await sendMessage(chatUser, videoUrl, Type.video);
   }
 
   //send chat image
@@ -638,6 +777,32 @@ class APIs {
       }
     }
   }
+  //send to MultipleUsers Video
+  static Future<void> sendChatVideoToMultipleUsers(List<ChatUser> users, File file) async {
+    final ext = file.path.split('.').last;
+
+    for (ChatUser user in users) {
+      final ref = storage.ref().child(
+          'videos/${getConversationID(user.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+      try {
+        log('Uploading video to ${user.name} at ${ref.fullPath}');
+
+        await ref.putFile(file, SettableMetadata(contentType: 'video/$ext')).then((p0) {
+          log('Data Transferred to ${user.name}: ${p0.bytesTransferred / 1000} kb');
+        });
+
+        final videoUrl = await ref.getDownloadURL();
+        await sendMessage(user, videoUrl, Type.video);
+        log('Successfully sent video to ${user.name}');
+
+      } catch (e) {
+        log('Error sending video to ${user.name}: ${e.toString()}');
+      }
+    }
+  }
+
+
   //delete message
   static Future<void> deleteMessage(Message message) async {
     await firestore

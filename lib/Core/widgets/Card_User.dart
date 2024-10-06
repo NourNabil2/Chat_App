@@ -31,6 +31,7 @@ class _ChatUserCardState extends State<ChatUserCardState> {
   Message? _message;
   int _streak = 0; // To hold the streak count
   bool _isUploading = false;
+
   @override
   void initState() {
     super.initState();

@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chats/Core/Network/API.dart';
 
 import 'package:chats/Features/Auth_screen/View/login_page.dart';
+import 'package:chats/Features/Camera_Screen/View/Widgets/button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -111,13 +112,14 @@ class _ProfileScreenState extends State<Porfile_Other_Users> {
                   // for adding some space
                   SizedBox(height: 10),
                   // user email label
-                  Text(widget.user.email,
+                  Text(widget.user.userName,
                       style: const TextStyle(
                           color: Colors.black54, fontSize: 16)),
                   // about input field
                   Text(
                      widget.user.about,
                   ),
+                  CustomButton(context, () => APIs.deleteFriend(widget.user), '   Delete Friend', Icons.person_remove_alt_1_outlined)
                 ],
               ),
             ),

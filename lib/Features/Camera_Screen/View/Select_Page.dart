@@ -8,13 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../Home_Screen/View/Widgets/AppBar_Sliver_widget.dart';
-import '../../Home_Screen/View/Widgets/ChatsList_widget.dart';
-import '../../Home_Screen/View/Widgets/Chats_Page.dart';
 import 'ChatList_Select_Page.dart';
+
 
 class SelectPageScreen extends StatefulWidget {
   final File? selectedImage;
-  const SelectPageScreen({super.key, this.selectedImage});
+  final File? selectedVideo; // New parameter for video
+
+  const SelectPageScreen({super.key, this.selectedImage, this.selectedVideo});
 
   @override
   State<SelectPageScreen> createState() => _HomeScreenState();
@@ -50,15 +51,19 @@ class _HomeScreenState extends State<SelectPageScreen> {
             BlocProvider.of<ChatsCubit>(context).getAllUsers(state.userIds);
           }
         },
-        builder: (context, state) => Column(
-          children: [
-            Expanded(
-              child: SelectUsers(
-                selectedImage: widget.selectedImage,
+        builder: (context, state) {
+          // Check which media file is selected
+          final File? selectedMedia = widget.selectedImage ?? widget.selectedVideo;
+          final bool isVideo = widget.selectedVideo != null; // Check if it's a video
+
+          return Column(
+            children: [
+              Expanded(
+                child: SelectUsers(selectedMedia: selectedMedia, isVideo: isVideo), // Pass the media to SelectUsers
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }

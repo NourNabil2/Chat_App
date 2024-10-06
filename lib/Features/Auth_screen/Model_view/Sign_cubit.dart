@@ -13,31 +13,49 @@ part 'Sign_state.dart';
 class SignCubit extends Cubit<SignState> {
   SignCubit() : super(SignInitial());
 
-  Future<void> loginUser({required String email ,required String password}) async {
-      emit(LoginLoading());
-    try{
+  Future<void> loginUser({required String username, required String password}) async {
+    emit(LoginLoading());
+
+    try {
+      // Step 1: Retrieve email by username
+      String email = await getEmailByUsername(username);
+
+      // Step 2: Sign in with email and password
       UserCredential user = await APIs.auth.signInWithEmailAndPassword(email: email, password: password);
+
       if (user.user != null) {
         emit(LoginSuccess());
       } else {
-        emit(LoginErorr('user-not-found'));
+        emit(LoginError('user-not-found'));
       }
-
-
     } on FirebaseAuthException catch (ex) {
       if (ex.code == 'user-not-found') {
-        emit(LoginErorr('user-not-found'));
+        emit(LoginError('user-not-found'));
       } else if (ex.code == 'wrong-password') {
-        emit(LoginErorr('wrong-password'));
-      }
-      else {
-        emit(LoginErorr('Wrong Email or Passwork'));
+        emit(LoginError('wrong-password'));
+      } else {
+        emit(LoginError('Wrong Email or Password'));
       }
     } catch (e) {
-      emit(LoginErorr('there was an error'));
+      emit(LoginError('there was an error'));
     }
-
   }
+
+// Function to retrieve email based on username
+  Future<String> getEmailByUsername(String username) async {
+    // Assume you have a Firestore collection named 'users' with 'username' and 'email' fields
+    var querySnapshot = await APIs.firestore.collection('Users')
+        .where('userName', isEqualTo: username)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first['email'];
+    } else {
+      throw Exception('Username not found');
+    }
+  }
+
 
   Future<void> registerUser({
     required String email,
@@ -101,7 +119,7 @@ class SignCubit extends Cubit<SignState> {
        return await APIs.auth.signInWithCredential(credential);
     } catch (e) {
       log('\n_signInWithGoogle: $e');
-      emit(LoginErorr('Failed login with Google, try again'));
+      emit(LoginError('Failed login with Google, try again'));
 
     }
   }

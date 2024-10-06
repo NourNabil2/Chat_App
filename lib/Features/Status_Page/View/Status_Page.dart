@@ -66,7 +66,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             _image = image.path;
                           });
 
-                          APIs.sendStoryImage(File(_image!));
+                          APIs.sendStoryMedia(File(_image!));
 
                           // for hiding bottom sheet
                           Navigator.pop(context);
@@ -91,7 +91,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             _image = image.path;
                           });
 
-                          APIs.sendStoryImage(File(_image!));
+                          APIs.sendStoryMedia(File(_image!));
 
                           // for hiding bottom sheet
                           Navigator.pop(context);
@@ -107,7 +107,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    log('user Story list ${widget.userList[1].status}');
+    log('user Story list statys ${widget.userList[1].status}');
     return Scaffold(
       body: Container(
 
@@ -124,7 +124,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 child: Stack(
                   alignment: Alignment.bottomRight,
                   children: [
-                      Column(
+                      Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         ClipRRect(
@@ -143,8 +143,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'You',
-                          style: Theme.of(context).textTheme.titleSmall,
+                          'My Story',
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
