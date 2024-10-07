@@ -49,10 +49,10 @@ dependencies:
   flutter_switch:
   flutter_bloc:
   modal_progress_hud_nsn:
-  firebase_core: ^3.4.1
+  firebase_core: ^3.6.0
   firebase_auth: ^5.2.1
-  cloud_firestore: ^5.4.1
-  firebase_storage:
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.2
   firebase_messaging:
   flutter_notification_channel: ^3.1.0
   cached_network_image:
