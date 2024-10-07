@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chats/Core/Utils/constants.dart';
 import 'package:dio/dio.dart';
@@ -24,8 +25,30 @@ class MessageCard extends StatefulWidget {
 
 class _MessageCardState extends State<MessageCard> {
   VideoPlayerController? _videoController;
+  Timer? _deleteImageTimer;
 
-// Initialize VideoPlayer using video URL
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    _deleteImageTimer?.cancel();
+    super.dispose();
+  }
+
+  // Start the 10-second timer to delete the image message
+  void _startImageDeleteTimer() {
+    _deleteImageTimer = Timer(const Duration(seconds: 10), () async {
+      await APIs.deleteMessage(widget.message);
+      setState(() {});
+      Dialogs.showSnackbar(context, 'Image message deleted after viewing');
+    });
+  }
+
+  // Initialize VideoPlayer using video URL
   Future<void> _initializeVideoPlayerFuture(String videoUrl) async {
     _videoController = VideoPlayerController.network(videoUrl);
 
@@ -108,10 +131,21 @@ class _MessageCardState extends State<MessageCard> {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 10),
-        Text(
-          Format_Time.getFormattedTime(
-              context: context, time: widget.message.sent),
-          style: Theme.of(context).textTheme.bodySmall,
+        Column(
+          children: [
+            Text(
+              Format_Time.getFormattedTime(
+                  context: context, time: widget.message.sent),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Icon(
+              widget.message.read != ''
+                  ? Icons.send
+                  : Icons.done, // Use different icons for read/unread states
+              size: 16,
+              color: widget.message.read != '' ? Colors.blue : Colors.grey,
+            ),
+          ],
         ),
       ],
     );
@@ -120,21 +154,21 @@ class _MessageCardState extends State<MessageCard> {
   Widget _buildImageMessage() {
     return widget.message.msg.isNotEmpty
         ? InkWell(
-      onTap: () => _showFullScreenImage(context,widget.message.msg),
-          child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: CachedNetworkImage(
+      onTap: () => _showFullScreenImage(context, widget.message.msg),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: CachedNetworkImage(
           imageUrl: widget.message.msg,
           width: AppSize.s160,
           placeholder: (context, url) => const Padding(
             padding: EdgeInsets.all(8.0),
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
           errorWidget: (context, url, error) =>
           const Icon(Icons.error, size: 70, color: Colors.red),
-                ),
-              ),
-        )
+        ),
+      ),
+    )
         : const Icon(Icons.error, size: 70, color: Colors.red);
   }
 
@@ -146,17 +180,14 @@ class _MessageCardState extends State<MessageCard> {
         future: _initializeVideoPlayerFuture(widget.message.msg),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-
-            // Show the "Video is Ready" button
             return ElevatedButton(
               onPressed: () {
                 // Show video in a full-screen dialog like Snapchat
                 _showFullScreenVideo(context);
               },
-              child: Text('Video is Ready'),
+              child: const Text('Video is Ready'),
             );
           } else {
-            // Show a loading indicator while video is being prepared
             return const Padding(
               padding: EdgeInsets.all(8.0),
               child: CircularProgressIndicator(strokeWidth: 2),
@@ -168,12 +199,12 @@ class _MessageCardState extends State<MessageCard> {
         : const Icon(Icons.error, size: 70, color: Colors.red);
   }
 
-// Method to show the video in full-screen like Snapchat
   void _showFullScreenVideo(BuildContext context) {
+    _startImageDeleteTimer();
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        insetPadding: EdgeInsets.all(0),
+        insetPadding: const EdgeInsets.all(0),
         child: AspectRatio(
           aspectRatio: _videoController!.value.aspectRatio,
           child: Stack(
@@ -183,7 +214,7 @@ class _MessageCardState extends State<MessageCard> {
                 top: 10,
                 right: 10,
                 child: IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
+                  icon: const Icon(Icons.close, color: Colors.white),
                   onPressed: () {
                     Navigator.of(context).pop(); // Close full-screen view
                   },
@@ -195,15 +226,15 @@ class _MessageCardState extends State<MessageCard> {
       ),
     );
   }
-  // Method to show the image in full-screen
+
   void _showFullScreenImage(BuildContext context, String imageUrl) {
+    _startImageDeleteTimer();
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        insetPadding: EdgeInsets.all(0),
+        insetPadding: const EdgeInsets.all(0),
         child: Stack(
           children: [
-            // Display the image in full-screen
             Positioned.fill(
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
@@ -214,7 +245,7 @@ class _MessageCardState extends State<MessageCard> {
               top: 10,
               right: 10,
               child: IconButton(
-                icon: Icon(Icons.close, color: Colors.white),
+                icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () {
                   Navigator.of(context).pop(); // Close full-screen view
                 },
@@ -225,6 +256,7 @@ class _MessageCardState extends State<MessageCard> {
       ),
     );
   }
+
   void showBottomSheet(bool isMe) {
     showModalBottomSheet(
       backgroundColor: Theme.of(context).primaryColorDark,
@@ -273,10 +305,7 @@ class _MessageCardState extends State<MessageCard> {
               _OptionItem(
                 icon: const Icon(Icons.edit, color: Colors.blue, size: 26),
                 name: 'Edit Message',
-                onTap: () {
-                  Navigator.pop(context);
-                  showMessageUpdateDialog();
-                },
+                onTap: () {},
               ),
             if (isMe)
               _OptionItem(
@@ -288,6 +317,21 @@ class _MessageCardState extends State<MessageCard> {
                   Navigator.pop(context);
                 },
               ),
+            Divider(
+                color: ColorApp.kwhiteColor , endIndent: 15, indent: 15),
+            _OptionItem(
+              icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+              name:
+              'Sent At: ${Format_Time.getFormattedTime(context: context, time: widget.message.sent)}',
+              onTap: () {},
+            ),
+            _OptionItem(
+              icon: const Icon(Icons.remove_red_eye, color: Colors.green),
+              name: widget.message.read.isEmpty
+                  ? 'Read At: Not Seen Yet'
+                  : 'Read At: ${Format_Time.getFormattedTime(context: context, time: widget.message.read)}',
+              onTap: () {},
+            ),
           ],
         );
       },
@@ -296,12 +340,10 @@ class _MessageCardState extends State<MessageCard> {
 
   Widget _bottomSheetHandle() {
     return Container(
-      height: 5,
-      margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 150),
+      height: 4,
+      margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 120),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
+          color: Colors.white, borderRadius: BorderRadius.circular(8)),
     );
   }
 
@@ -321,73 +363,26 @@ class _MessageCardState extends State<MessageCard> {
       return false;
     }
   }
-
-  void showMessageUpdateDialog() {
-    String updatedMsg = widget.message.msg;
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: const [
-            Icon(Icons.message, color: Colors.blue, size: 28),
-            Text(' Update Message'),
-          ],
-        ),
-        content: TextFormField(
-          initialValue: updatedMsg,
-          maxLines: null,
-          onChanged: (value) => updatedMsg = value,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-          ),
-        ),
-        actions: [
-          MaterialButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
-          ),
-          MaterialButton(
-            onPressed: () {
-              Navigator.pop(context);
-              APIs.updateMessage(widget.message, updatedMsg);
-            },
-            child: const Text('Update', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
-    );
-  }
 }
+
 class _OptionItem extends StatelessWidget {
   final Icon icon;
   final String name;
   final VoidCallback onTap;
-
   const _OptionItem(
       {required this.icon, required this.name, required this.onTap});
-
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+      child: InkWell(
+        onTap: onTap,
         child: Row(
           children: [
             icon,
             Flexible(
-              child: Text(
-                '   $name',
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .bodyMedium,
-              ),
-            ),
+                child: Text('   $name',
+                    style: Theme.of(context).textTheme.bodyLarge)),
           ],
         ),
       ),

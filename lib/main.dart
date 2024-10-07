@@ -72,6 +72,7 @@ class MyApp extends StatelessWidget {
               primaryColorLight: ColorApp.kwhiteColor,
               primaryColorDark: ColorApp.kwhiteColor,
               primaryColor: ColorApp.whitechat,
+              canvasColor: Colors.black12,
               textTheme: const TextTheme(
                 titleMedium: TextStyle(
                     color: ColorApp.whitechat,
@@ -107,6 +108,7 @@ class MyApp extends StatelessWidget {
               primaryColorLight: ColorApp.kPrimaryColor,
               primaryColorDark: ColorApp.mainDark,
               primaryColor: ColorApp.darkchat,
+              canvasColor: Colors.white24,
               iconTheme: const IconThemeData(color: ColorApp.kwhiteColor),
               textTheme: const TextTheme(
                 titleMedium: TextStyle(

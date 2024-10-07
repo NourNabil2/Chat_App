@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:chats/Core/Utils/constants.dart';
 import 'package:chats/Features/Home_Screen/View/Widgets/AppBar_Sliver_widget.dart';
+import 'package:chats/Features/Status_Page/View/widget/customDivider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
@@ -163,7 +164,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ],
                 ),
               ),
-
+              const CenteredTextDivider(text: 'Recent Updates'),
               widget.userList.isEmpty? Container() : Flexible(
                 child: ListView.builder(
                   itemCount: widget.userList.length,

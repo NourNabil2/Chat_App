@@ -7,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
 import '../../../Core/Network/API.dart';
+import '../../../Core/Utils/constants.dart';
+import '../../Status_Page/View/widget/customDivider.dart';
 
 class SelectUsers extends StatefulWidget {
   final File? selectedMedia; // Changed to selectedMedia to support both images and videos
@@ -46,6 +48,23 @@ class _SelectUsersState extends State<SelectUsers> {
     }
   }
 
+  // Function to send the selected image as a story
+  void _sendStoryImage() {
+    if (widget.selectedMedia != null && !widget.isVideo) {
+      APIs.sendStoryMedia(widget.selectedMedia!);
+      Dialogs.showSnackbar(context, 'Story Image Sent Successfully');
+      print("Picture sent as a story!");
+    }
+  }
+
+  // Function to send the selected video as a story
+  void _sendStoryVideo() {
+    if (widget.selectedMedia != null && widget.isVideo) {
+      APIs.sendStoryMedia(widget.selectedMedia!, isVideo: true);
+      Dialogs.showSnackbar(context, 'Story Video Sent Successfully');
+      print("Video sent as a story!");
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
@@ -58,58 +77,107 @@ class _SelectUsersState extends State<SelectUsers> {
         userList = (state is getAlluser) ? state.UserList : [];
         searchList = (state is ChatsDisplaylist) ? state.searchList : [];
 
-        return Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: ChatsCubit.isSearching ? searchList.length : userList.length,
-                    itemBuilder: (context, index) {
-                      ChatUser user = ChatsCubit.isSearching ? searchList[index] : userList[index];
-                      bool isSelected = selectedUsers.contains(user); // Check if the user is selected
-                      return Column(
-                        children: [
-                          ListTile(
-                            key: Key('KEY_$index'),
-                            title: Text(user.name, style: Theme.of(context).textTheme.bodyMedium), // Display user name only
-                            trailing: Checkbox(
-                              value: isSelected,
-                              onChanged: (bool? selected) {
-                                setState(() {
-                                  if (selected == true) {
-                                    selectedUsers.add(user); // Add user to selected list
-                                  } else {
-                                    selectedUsers.remove(user); // Remove user from selected list
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          if (index != (ChatsCubit.isSearching ? searchList.length : userList.length) - 1) // Add a separator line if it's not the last item
-                            const Divider(
-                              color: Colors.grey,
-                              thickness: 0.2,
-                              height: 0.1,
-                            ),
-                        ],
-                      );
-                    },
+        return SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  // Your custom button to send the story
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GestureDetector(
+                      onTap: widget.isVideo ? _sendStoryVideo : _sendStoryImage, // Call send media function when tapped
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          radius: 25, // Adjust the size of the avatar
+                          backgroundColor: Colors.grey[300],
+                          backgroundImage: NetworkImage(APIs.me.image), // User's image
+                        ),
+                        title: Text(
+                          "My Story", // User's name
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        trailing: Icon(Icons.send), // Icon to indicate sending
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: FloatingActionButton(
-                backgroundColor: Theme.of(context).primaryColor,
-                onPressed: _sendMedia, // Call the function to send the media
-                tooltip: 'Send Media',
-                child: Icon(Icons.send, color: Theme.of(context).secondaryHeaderColor),
+                  const CenteredTextDivider(text: 'My friends'),
+
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: ChatsCubit.isSearching ? searchList.length : userList.length,
+                      itemBuilder: (context, index) {
+                        ChatUser user = ChatsCubit.isSearching ? searchList[index] : userList[index];
+                        bool isSelected = selectedUsers.contains(user); // Check if the user is selected
+
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(AppSize.s8),
+                              child: ListTile(
+                                key: Key('KEY_$index'),
+                                leading: CircleAvatar(
+                                  radius: 25, // Adjust the size of the avatar
+                                  backgroundColor: Colors.grey[300],
+                                  backgroundImage: user.image != null && user.image.isNotEmpty
+                                      ? NetworkImage(user.image) // Display user's image
+                                      : null, // If there's no image, use initials
+                                  child: user.image == null || user.image.isEmpty
+                                      ? Text(
+                                    user.name[0].toUpperCase(), // Display the first letter of the name
+                                    style: TextStyle(fontSize: 20, color: Colors.white),
+                                  )
+                                      : null, // No need to display initials if there's an image
+                                ),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(user.name, style: Theme.of(context).textTheme.bodyMedium),
+                                    ),
+                                  ],
+                                ), // Display user name only
+                                trailing: Checkbox(
+                                  value: isSelected,
+                                  onChanged: (bool? selected) {
+                                    setState(() {
+                                      if (selected == true) {
+                                        selectedUsers.add(user); // Add user to selected list
+                                      } else {
+                                        selectedUsers.remove(user); // Remove user from selected list
+                                      }
+                                    });
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(50), // Creates a circular shape
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (index != (ChatsCubit.isSearching ? searchList.length : userList.length) - 1) // Add a separator line if it's not the last item
+                              const Divider(
+                                color: Colors.grey,
+                                thickness: 0.2,
+                                height: 0.1,
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: FloatingActionButton(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  onPressed: _sendMedia, // Call the function to send the media
+                  tooltip: 'Send Media',
+                  child: Icon(Icons.send, color: Theme.of(context).secondaryHeaderColor),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

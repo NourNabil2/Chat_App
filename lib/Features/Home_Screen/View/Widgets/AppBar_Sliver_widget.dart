@@ -49,7 +49,7 @@ class _appbarSliverState extends State<appbarSliver> {
             _friendRequestIcon(context, friendRequestCount),
             const SizedBox(width: 5),
             CircleAvatar(
-              backgroundColor: Colors.white24,
+              backgroundColor: Theme.of(context).canvasColor,
               child: Icon(Icons.more_horiz, color: Theme.of(context).textTheme.bodyMedium?.color),
             ),
           ],
@@ -61,7 +61,7 @@ class _appbarSliverState extends State<appbarSliver> {
 
   Widget _navIcon(IconData icon, Widget page) {
     return CircleAvatar(
-      backgroundColor: Colors.white24,
+        backgroundColor: Theme.of(context).canvasColor,
       child: IconButton(
         icon: Icon(icon),
         color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -72,7 +72,7 @@ class _appbarSliverState extends State<appbarSliver> {
 
   Widget _searchIcon(BuildContext context) {
     return CircleAvatar(
-      backgroundColor: Colors.white24,
+      backgroundColor: Theme.of(context).canvasColor,
       child: IconButton(
         onPressed: () => ChatsCubit.get(context).ChangeSearchIcon(),
         icon: Icon(
@@ -85,7 +85,7 @@ class _appbarSliverState extends State<appbarSliver> {
 
   Widget _friendRequestIcon(BuildContext context, int friendRequestCount) {
     return CircleAvatar(
-      backgroundColor: Colors.white24,
+      backgroundColor: Theme.of(context).canvasColor,
       child: Stack(alignment: Alignment.topLeft, children: [
         if (friendRequestCount > 0)
           Container(
