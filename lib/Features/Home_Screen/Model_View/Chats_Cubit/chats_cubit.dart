@@ -40,7 +40,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         whereIn: userIds.isEmpty
             ? ['']
             : userIds)
-    //.where('id', isNotEqualTo: user.uid)
+    //.where('id', isNotEqualTo: APIs.me.id)
         .snapshots().listen((event) {
       final data = event.docs;
 
@@ -55,6 +55,23 @@ class ChatsCubit extends Cubit<ChatsState> {
       }
       emit(getAlluser(UserList: UserList));
     },);
+  }
+
+
+  List<ChatUser> alluserList = [];
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> allUsers() {
+    return APIs.firestore
+        .collection(kUsersCollections)
+        .snapshots()
+        .listen((event) {
+      alluserList = event.docs
+          .map((e) => ChatUser.fromJson(e.data()))
+          .toList();
+
+      log("Fetched Users: ${jsonEncode(alluserList)}");
+
+      emit(allUsersSucess(UserList: alluserList)); // Emit the list to update the UI
+    });
   }
 
   void ChangeSearchIcon()
@@ -72,5 +89,34 @@ class ChatsCubit extends Cubit<ChatsState> {
       }).toList();
       emit(ChatsDisplaylist(UserList: UserList, searchList: searchList, isSearching: true));
     }
+  }
+  /// FRIEND REQUEST
+  List<Friendrequest> friendRequests = [];
+
+  // Method to fetch friend requests in real-time.
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? friendRequestSubscription;
+
+  // Listen to friend requests updates in Firestore
+  void fetchFriendRequests() {
+    friendRequestSubscription = APIs.firestore
+        .collection(kUsersCollections)
+        .doc(APIs.user.uid)
+        .collection('friendRequests')
+        .snapshots()
+        .listen((event) {
+      friendRequests = event.docs.map((doc) => Friendrequest.fromJson(doc.data())).toList();
+      emit(FriendRequestsUpdated(friendRequestList: friendRequests));
+    });
+  }
+
+  // Method to cancel the subscription
+  void cancelSubscription() {
+    friendRequestSubscription?.cancel();
+  }
+
+  @override
+  Future<void> close() {
+    cancelSubscription();
+    return super.close();
   }
 }

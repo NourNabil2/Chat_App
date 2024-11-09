@@ -101,14 +101,11 @@ class _MessageCardState extends State<MessageCard> {
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
               color: isMe
-                  ? Theme.of(context).primaryColor
-                  : Theme.of(context).primaryColorLight,
+                  ? Theme.of(context).scaffoldBackgroundColor
+                  : Theme.of(context).primaryColor,
               border: Border.all(color: ColorApp.kPrimaryColor),
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(20),
-                topRight: const Radius.circular(20),
-                bottomRight: Radius.circular(isMe ? 0 : 20),
-                bottomLeft: Radius.circular(isMe ? 20 : 0),
+              borderRadius: BorderRadius.all(
+                  Radius.circular(20)
               ),
             ),
             child: widget.message.type == Type.text
@@ -123,31 +120,38 @@ class _MessageCardState extends State<MessageCard> {
   }
 
   Widget _buildTextMessage() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.message.msg,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 10),
-        Column(
+    return Padding(
+      padding: EdgeInsets.all(AppSize.s4),
+      child: FittedBox(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Text(
+                  Format_Time.getFormattedTime(
+                      context: context, time: widget.message.sent),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                Icon(
+                  widget.message.read != ''
+                      ? Icons.send
+                      : Icons.done, // Use different icons for read/unread states
+                  size: 16,
+                  color: widget.message.read != '' ? Colors.blue : Colors.grey,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
             Text(
-              Format_Time.getFormattedTime(
-                  context: context, time: widget.message.sent),
-              style: Theme.of(context).textTheme.bodySmall,
+              widget.message.msg,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-            Icon(
-              widget.message.read != ''
-                  ? Icons.send
-                  : Icons.done, // Use different icons for read/unread states
-              size: 16,
-              color: widget.message.read != '' ? Colors.blue : Colors.grey,
-            ),
+
+
           ],
         ),
-      ],
+      ),
     );
   }
 

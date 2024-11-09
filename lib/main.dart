@@ -71,11 +71,11 @@ class MyApp extends StatelessWidget {
               secondaryHeaderColor: ColorApp.whitechat,
               primaryColorLight: ColorApp.kwhiteColor,
               primaryColorDark: ColorApp.kwhiteColor,
-              primaryColor: ColorApp.whitechat,
+              primaryColor: ColorApp.iconChat,
               canvasColor: Colors.black12,
               textTheme: const TextTheme(
                 titleMedium: TextStyle(
-                    color: ColorApp.whitechat,
+                    color: ColorApp.mainDark,
                     fontWeight: FontWeight.bold,
                     fontSize: 22,
                     fontFamily: 'Urbanist'),
@@ -104,11 +104,13 @@ class MyApp extends StatelessWidget {
               ),
             ),
             darkTheme: ThemeData(
+              scaffoldBackgroundColor: ColorApp.mainDark,
               secondaryHeaderColor: ColorApp.kwhiteColor,
               primaryColorLight: ColorApp.kPrimaryColor,
               primaryColorDark: ColorApp.mainDark,
               primaryColor: ColorApp.darkchat,
               canvasColor: Colors.white24,
+              hintColor: Colors.white70,
               iconTheme: const IconThemeData(color: ColorApp.kwhiteColor),
               textTheme: const TextTheme(
                 titleMedium: TextStyle(

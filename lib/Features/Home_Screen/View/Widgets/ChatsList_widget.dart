@@ -20,7 +20,11 @@ class chatsList extends StatefulWidget {
 class _chatsListState extends State<chatsList> {
   List<ChatUser> UserList = [];
   List<ChatUser> searchList = []; // TODO
-
+@override
+  void initState() {
+  BlocProvider.of<ChatsCubit>(context).getMyUsersId();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(

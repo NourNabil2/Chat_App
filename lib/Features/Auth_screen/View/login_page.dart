@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:chats/Core/widgets/custom_button.dart';
 import 'package:chats/Core/widgets/custom_text_field.dart';
+import 'package:chats/Features/Auth_screen/View/login_main.dart';
 import 'package:chats/Features/Auth_screen/View/resgister_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +50,6 @@ class LoginPage extends StatelessWidget {
             }
 
           });
-
-
         } else if (state is LoginError) {
           isLoading = false;
           showSnackBar(context, state.messageErorr!);
@@ -61,82 +60,70 @@ class LoginPage extends StatelessWidget {
         inAsyncCall: isLoading,
         child: Scaffold(
           body: Container(
-            padding: const EdgeInsetsDirectional.symmetric(horizontal: 15),
             decoration: const BoxDecoration(
-              color: ColorApp.kPrimaryColor,
-                image: DecorationImage(
-                    image: AssetImage(kLogoscreen), fit: BoxFit.cover)),
+              color: ColorApp.whitechat,
+                ),
             child: Form(
               key: formKey,
-              child: ListView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Image.asset(
-                    kLogo,
-                    height: 200,
-                  ),
-                  Center(
-                    child: Text(
-                      'Wellcome to Chato',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  // Logo image at the top
+                  Padding(
+                    padding: const EdgeInsets.only(top: 100), // Adjust padding as needed
+                    child: Image.asset(
+                      kLogo, // Replace with your logo path (e.g., kLogo)
+                      height: 200,
                     ),
                   ),
-                  Box(height: 120),
-                  CustomFormTextField(
-                    obscureText: false,
-                    onChanged: (data) {
-                      email = data;
-                    },
-                    hintText: 'User Name',
-                  ),
-                  CustomFormTextField(
-                    obscureText: true,
-                    onChanged: (data) {
-                      password = data;
-                    },
-                    hintText: 'Password',
-                  ),
-                  Box(height: 20),
-                  CustomButon(
-                    onTap: () async {
-                      if (formKey.currentState!.validate()) {
-                        Cubit.loginUser(username: email!, password: password!);
-                      } else {}
-                    },
-                    text: 'LOGIN',
-                  ),
-                  Box(height: 20),
-                  signInWithText(),
-                  Box(height: 20),
-                  // GoogleButon(
-                  //   onTap: () {
-                  //     Cubit.handleGoogleBtnClick();
-                  //   },
-                  //   text: 'Sgin In With Google',
-                  // ),
-                  Box(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+
+                  // Buttons at the bottom
+                  Column(
                     children: [
-                      Text(
-                        'dont\'t have an account?',
-                        style: TextStyle(
-                          color: Colors.white,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Login()),
+                          );
+                        },
+                        child: Container(
+                          color: Color(0xFFFF3B30), // Red color for Login button
+                          height: 60,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'LOG IN',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, RegisterPage.id);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => RegisterPage()),
+                          );
                         },
-                        child: Text(
-                          '  Register',
-                          style: TextStyle(
-                            color: Color(0xffC7EDE6),
+                        child: Container(
+                          color: Color(0xFF007AFF), // Blue color for Sign Up button
+                          height: 60,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'SIGN UP',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Box(height: 20),
                 ],
               ),
             ),

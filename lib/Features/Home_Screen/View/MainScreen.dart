@@ -1,4 +1,5 @@
 import 'package:chats/Core/Utils/constants.dart';
+import 'package:chats/Features/Profile_Screen/View_Data/profile_cubit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
   @override
   void initState() {
-    tabController = TabController(length: 5, initialIndex: 2, vsync: this);
+    tabController = TabController(length: 3, initialIndex: 1, vsync: this);
 
     tabController.animation!.addListener(() {
       final value = tabController.animation!.value.round();
@@ -59,11 +60,11 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             dragStartBehavior: DragStartBehavior.down,
             physics: const BouncingScrollPhysics(),
             children: [
-              MapScreen(),
+              //MapScreen(),
               HomeScreen(controller: ScrollController()),
               CameraScreen(), // CameraScreen as the initial screen
-              const statusInfoPage(),
-              const callPage(),
+              const StatusInfoPage(),
+             // const callPage(),
             ],
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
@@ -77,6 +78,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
               SizedBox(
                 height: AppSize.s80,
                 child: BottomNavigationBar(
+                  backgroundColor: ProfileCubit.get(context).Darkmood ? ColorApp.mainDark: ColorApp.kwhiteColor,
                   currentIndex: HomeCubit.current,
                   iconSize: AppSize.s30,
                   onTap: (index) {
@@ -91,29 +93,20 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                   unselectedItemColor: Theme.of(context).secondaryHeaderColor,
                   items: [
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.location_on_rounded),
+                      icon:  Icon(Icons.chat_bubble_outline,color: Theme.of(context).hintColor,),
                       label: '',
-                      backgroundColor: Theme.of(context).primaryColorDark,
+                      activeIcon: Icon(Icons.chat_bubble,color: Theme.of(context).hintColor,),
                     ),
                     BottomNavigationBarItem(
-                      icon: const Icon(Icons.chat_bubble),
+                      icon: Icon(Icons.camera_alt_outlined,color: Theme.of(context).hintColor,),
                       label: '',
-                      backgroundColor: Theme.of(context).primaryColorDark,
+                      activeIcon: Icon(Icons.camera_alt,color: Theme.of(context).hintColor,),
+
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.camera_alt_outlined),
+                      icon: Icon(Icons.people_outline_rounded,color: Theme.of(context).hintColor,),
+                      activeIcon: Icon(Icons.people_alt_rounded,color: Theme.of(context).hintColor,),
                       label: '',
-                      backgroundColor: Theme.of(context).primaryColorDark,
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.people_outline_rounded),
-                      label: '',
-                      backgroundColor: Theme.of(context).primaryColorDark,
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.play_arrow_sharp, size: 40),
-                      label: '',
-                      backgroundColor: Theme.of(context).primaryColorDark,
                     ),
                   ],
                 ),

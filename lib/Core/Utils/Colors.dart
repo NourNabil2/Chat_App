@@ -9,14 +9,11 @@ class ColorApp
   static const kPrimaryColor = Color(0xff13121D);
   static const TextFieldColor = Color(0xff2b3a57);
   static const ButtonColor = Color(0xff28445d);
-  //taps colors
-  static const taps_person = Color(0xff3f6b92);
+  static const bg_gray = Color(0x3F808080);
 
-
-  static const taps_call = Color(0xff93b151);
-  static const taps_add = Color(0xffebddff);
   //chat bubble
-  static const darkchat = Color(0xff1B202D);
-  static const whitechat = Color(0xff1895b6);
+  static const darkchat = Color(0xff525252);
+  static const whitechat = Color(0xffffef00);
+  static const iconChat = Color(0xFF818181);
 
 }

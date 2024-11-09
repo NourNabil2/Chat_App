@@ -3,9 +3,9 @@ import 'dart:io'; // Import for File type
 import 'package:chats/Core/Functions/show_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import '../../../Core/Network/API.dart';
 import '../../../Core/Utils/constants.dart';
 import '../../Status_Page/View/widget/customDivider.dart';
@@ -24,23 +24,35 @@ class _SelectUsersState extends State<SelectUsers> {
   List<ChatUser> userList = [];
   List<ChatUser> searchList = [];
   List<ChatUser> selectedUsers = []; // List to store selected users
+  bool _isUploading = false; // Boolean to track uploading state
 
   // Function to send the selected media (image or video) to multiple users
   void _sendMedia() async {
     if (widget.selectedMedia != null && selectedUsers.isNotEmpty) {
-      if (widget.isVideo) {
-        // Call your function to send the video to multiple users
-        await APIs.sendChatVideoToMultipleUsers(selectedUsers, widget.selectedMedia!);
-      } else {
-        // Call your function to send the image to multiple users
-        await APIs.sendChatImageToMultipleUsers(selectedUsers, widget.selectedMedia!);
+      setState(() {
+        _isUploading = true; // Start showing the loading indicator
+      });
+
+      try {
+        if (widget.isVideo) {
+          await APIs.sendChatVideoToMultipleUsers(selectedUsers, widget.selectedMedia!);
+        } else {
+          await APIs.sendChatImageToMultipleUsers(selectedUsers, widget.selectedMedia!);
+        }
+        Dialogs.showSnackbar(context, 'Sent Successfully');
+
+        // Add strike to each selected user
+        for (var user in selectedUsers) {
+          await APIs.addOrUpdateStreak(user.id);
+        }
+      } catch (e) {
+        Dialogs.showSnackbar(context, 'Error sending media');
+      } finally {
+        setState(() {
+          _isUploading = false; // Stop showing the loading indicator
+        });
+        Navigator.pop(context); // Close the screen after sending
       }
-      Dialogs.showSnackbar(context, 'Sent Successfully');
-      // Add strike to each selected user
-      for (var user in selectedUsers) {
-        await APIs.addOrUpdateStreak(user.id); // Assuming `addStrikeToUser` accepts a user ID
-      }
-      Navigator.pop(context);
     } else if (selectedUsers.isEmpty) {
       Dialogs.showSnackbar(context, 'No User Selected');
     } else {
@@ -49,20 +61,82 @@ class _SelectUsersState extends State<SelectUsers> {
   }
 
   // Function to send the selected image as a story
-  void _sendStoryImage() {
+  void _sendStoryImage() async {
     if (widget.selectedMedia != null && !widget.isVideo) {
-      APIs.sendStoryMedia(widget.selectedMedia!);
-      Dialogs.showSnackbar(context, 'Story Image Sent Successfully');
-      print("Picture sent as a story!");
+      setState(() {
+        _isUploading = true;
+      });
+
+      await APIs.sendStoryMedia(widget.selectedMedia!,isPublic: false).then((_) {
+        Dialogs.showSnackbar(context, 'Story Image Sent Successfully');
+      }).catchError((error) {
+        Dialogs.showSnackbar(context, 'Failed to send story image');
+      }).whenComplete(() {
+        setState(() {
+          _isUploading = false;
+        });
+        Navigator.pop(context);
+      });
     }
   }
 
   // Function to send the selected video as a story
-  void _sendStoryVideo() {
+  void _sendStoryVideo() async {
     if (widget.selectedMedia != null && widget.isVideo) {
-      APIs.sendStoryMedia(widget.selectedMedia!, isVideo: true);
-      Dialogs.showSnackbar(context, 'Story Video Sent Successfully');
-      print("Video sent as a story!");
+      setState(() {
+        _isUploading = true;
+      });
+
+      await APIs.sendStoryMedia(widget.selectedMedia!, isVideo: false,isPublic: false).then((_) {
+        Dialogs.showSnackbar(context, 'Story Video Sent Successfully');
+      }).catchError((error) {
+        Dialogs.showSnackbar(context, 'Failed to send story video');
+      }).whenComplete(() {
+        setState(() {
+          _isUploading = false;
+        });
+        Navigator.pop(context);
+      });
+    }
+  }
+  ///public
+  // Function to send the selected image as a story
+  void _sendStoryImage_public() async {
+    if (widget.selectedMedia != null && !widget.isVideo) {
+      setState(() {
+        _isUploading = true;
+      });
+
+      await APIs.sendStoryMedia(widget.selectedMedia!,isPublic: true).then((_) {
+        Dialogs.showSnackbar(context, 'Story Image Sent Successfully');
+      }).catchError((error) {
+        Dialogs.showSnackbar(context, 'Failed to send story image');
+      }).whenComplete(() {
+        setState(() {
+          _isUploading = false;
+        });
+        Navigator.pop(context);
+      });
+    }
+  }
+
+  // Function to send the selected video as a story
+  void _sendStoryVideo_public() async {
+    if (widget.selectedMedia != null && widget.isVideo) {
+      setState(() {
+        _isUploading = true;
+      });
+
+      await APIs.sendStoryMedia(widget.selectedMedia!, isVideo: true,isPublic: false).then((_) {
+        Dialogs.showSnackbar(context, 'Story Video Sent Successfully');
+      }).catchError((error) {
+        Dialogs.showSnackbar(context, 'Failed to send story video');
+      }).whenComplete(() {
+        setState(() {
+          _isUploading = false;
+        });
+        Navigator.pop(context);
+      });
     }
   }
   @override
@@ -77,106 +151,110 @@ class _SelectUsersState extends State<SelectUsers> {
         userList = (state is getAlluser) ? state.UserList : [];
         searchList = (state is ChatsDisplaylist) ? state.searchList : [];
 
-        return SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  // Your custom button to send the story
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GestureDetector(
-                      onTap: widget.isVideo ? _sendStoryVideo : _sendStoryImage, // Call send media function when tapped
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 25, // Adjust the size of the avatar
-                          backgroundColor: Colors.grey[300],
-                          backgroundImage: NetworkImage(APIs.me.image), // User's image
+        return ModalProgressHUD(
+          inAsyncCall: _isUploading,
+          progressIndicator: CircularProgressIndicator(),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: widget.isVideo ? _sendStoryVideo : _sendStoryImage,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 25,
+                            backgroundColor: Colors.grey[300],
+                            backgroundImage: NetworkImage(APIs.me.image),
+                          ),
+                          title: Text("My Story . Friend Only", style: Theme.of(context).textTheme.bodyMedium),
+                          trailing: Icon(Icons.send),
                         ),
-                        title: Text(
-                          "My Story", // User's name
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        trailing: Icon(Icons.send), // Icon to indicate sending
                       ),
                     ),
-                  ),
-                  const CenteredTextDivider(text: 'My friends'),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: widget.isVideo ? _sendStoryVideo_public : _sendStoryImage_public,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 25,
+                            backgroundColor: Colors.grey[300],
+                            backgroundImage: NetworkImage(APIs.me.image),
+                          ),
+                          title: Text("My Story . Public", style: Theme.of(context).textTheme.bodyMedium),
+                          trailing: Icon(Icons.send),
+                        ),
+                      ),
+                    ),
+                    const CenteredTextDivider(text: 'My friends'),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: ChatsCubit.isSearching ? searchList.length : userList.length,
+                        itemBuilder: (context, index) {
+                          ChatUser user = ChatsCubit.isSearching ? searchList[index] : userList[index];
+                          bool isSelected = selectedUsers.contains(user);
 
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: ChatsCubit.isSearching ? searchList.length : userList.length,
-                      itemBuilder: (context, index) {
-                        ChatUser user = ChatsCubit.isSearching ? searchList[index] : userList[index];
-                        bool isSelected = selectedUsers.contains(user); // Check if the user is selected
-
-                        return Column(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.all(AppSize.s8),
-                              child: ListTile(
-                                key: Key('KEY_$index'),
-                                leading: CircleAvatar(
-                                  radius: 25, // Adjust the size of the avatar
-                                  backgroundColor: Colors.grey[300],
-                                  backgroundImage: user.image != null && user.image.isNotEmpty
-                                      ? NetworkImage(user.image) // Display user's image
-                                      : null, // If there's no image, use initials
-                                  child: user.image == null || user.image.isEmpty
-                                      ? Text(
-                                    user.name[0].toUpperCase(), // Display the first letter of the name
-                                    style: TextStyle(fontSize: 20, color: Colors.white),
-                                  )
-                                      : null, // No need to display initials if there's an image
-                                ),
-                                title: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(user.name, style: Theme.of(context).textTheme.bodyMedium),
+                          return Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(AppSize.s8),
+                                child: ListTile(
+                                  key: Key('KEY_$index'),
+                                  leading: CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.grey[300],
+                                    backgroundImage: user.image != null && user.image.isNotEmpty
+                                        ? NetworkImage(user.image)
+                                        : null,
+                                    child: user.image == null || user.image.isEmpty
+                                        ? Text(
+                                      user.name[0].toUpperCase(),
+                                      style: TextStyle(fontSize: 20, color: Colors.white),
+                                    )
+                                        : null,
+                                  ),
+                                  title: Text(user.name, style: Theme.of(context).textTheme.bodyMedium),
+                                  trailing: Checkbox(
+                                    value: isSelected,
+                                    onChanged: (bool? selected) {
+                                      setState(() {
+                                        if (selected == true) {
+                                          selectedUsers.add(user);
+                                        } else {
+                                          selectedUsers.remove(user);
+                                        }
+                                      });
+                                    },
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(50),
                                     ),
-                                  ],
-                                ), // Display user name only
-                                trailing: Checkbox(
-                                  value: isSelected,
-                                  onChanged: (bool? selected) {
-                                    setState(() {
-                                      if (selected == true) {
-                                        selectedUsers.add(user); // Add user to selected list
-                                      } else {
-                                        selectedUsers.remove(user); // Remove user from selected list
-                                      }
-                                    });
-                                  },
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50), // Creates a circular shape
                                   ),
                                 ),
                               ),
-                            ),
-                            if (index != (ChatsCubit.isSearching ? searchList.length : userList.length) - 1) // Add a separator line if it's not the last item
-                              const Divider(
-                                color: Colors.grey,
-                                thickness: 0.2,
-                                height: 0.1,
-                              ),
-                          ],
-                        );
-                      },
+                              if (index != (ChatsCubit.isSearching ? searchList.length : userList.length) - 1)
+                                const Divider(color: Colors.grey, thickness: 0.2, height: 0.1),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              Positioned(
-                bottom: 16,
-                right: 16,
-                child: FloatingActionButton(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  onPressed: _sendMedia, // Call the function to send the media
-                  tooltip: 'Send Media',
-                  child: Icon(Icons.send, color: Theme.of(context).secondaryHeaderColor),
+                  ],
                 ),
-              ),
-            ],
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: FloatingActionButton(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    onPressed: _sendMedia,
+                    tooltip: 'Send Media',
+                    child: Icon(Icons.send, color: Theme.of(context).secondaryHeaderColor),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

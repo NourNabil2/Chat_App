@@ -41,7 +41,7 @@ dependencies:
   path:
   camera: ^0.11.0+2
   status_view: ^0.0.2
-  geolocator: ^13.0.1
+  geolocator:
   permission_handler:
   story_view: ^0.16.5
   bloc_provider:
@@ -49,15 +49,16 @@ dependencies:
   flutter_switch:
   flutter_bloc:
   modal_progress_hud_nsn:
-  firebase_core: ^3.6.0
+  firebase_core: ^3.4.1
   firebase_auth: ^5.2.1
-  cloud_firestore: ^5.4.4
-  firebase_storage: ^12.3.2
+  cloud_firestore: ^5.4.1
+  firebase_storage:
+  intl: ^0.17.0
   firebase_messaging:
+  googleapis_auth:
   flutter_notification_channel: ^3.1.0
   cached_network_image:
   image_picker:
-  shared_preferences:
   emoji_picker_flutter: ^3.0.0
   google_fonts:
   flutter_svg:

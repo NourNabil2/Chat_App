@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:chats/Core/Network/API.dart';
+import 'package:chats/Core/Network/notification_service.dart';
 import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
+    NotificationHelper.getFirebaseMessagingToken();
     super.initState();
     APIs.getSelfInfo();
     SystemChannels.lifecycle.setMessageHandler((message) {
@@ -48,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           BlocProvider.of<ChatsCubit>(context).getAllUsers(state.userIds);
                         }
                     },
-                    builder: (context, state) =>  chatsPage(controller: widget.controller,)),
+                    builder: (context, state) => chatsPage(controller: widget.controller,)),
     );
   }
 

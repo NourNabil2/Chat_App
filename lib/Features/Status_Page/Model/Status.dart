@@ -8,6 +8,7 @@ class Status {
     required this.fromId,
     required this.fromname,
     required this.sent,
+    required this.public,
   });
 
 
@@ -18,6 +19,7 @@ class Status {
   late final String fromname;
   late final String sent;
   late final Type_s type;
+  late final bool public;
 
   Status.fromJson(Map<String, dynamic> json) {
 
@@ -28,6 +30,7 @@ class Status {
     fromId = json['fromId'].toString();
     fromname = json['from_name'].toString();
     sent = json['sent'].toString();
+    public = json['public'];
   }
 
   Map<String, dynamic> toJson() {
@@ -40,6 +43,7 @@ class Status {
     data['fromId'] = fromId;
     data['from_name'] = fromname;
     data['sent'] = sent;
+    data['public'] = public;
     return data;
   }
 }

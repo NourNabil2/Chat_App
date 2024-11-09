@@ -1,29 +1,29 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:chats/Core/Utils/constants.dart';
-import 'package:chats/Features/Home_Screen/View/Widgets/AppBar_Sliver_widget.dart';
+import 'package:chats/Features/Status_Page/View/My_Status_Screen.dart';
 import 'package:chats/Features/Status_Page/View/widget/customDivider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:status_view/status_view.dart';
-
 import '../../../Core/Network/API.dart';
 import '../../Home_Screen/Data/Users.dart';
 import 'Status_Screen.dart'; // Import your card user widget
 
-class UserProfilePage extends StatefulWidget {
+class UserStoryPage extends StatefulWidget {
   final List<ChatUser> userList; // Assume ChatUser is your user model class
+  final List<ChatUser> alluserList; // Assume ChatUser is your user model class
 
 
-  UserProfilePage({required this.userList, Key? key}) : super(key: key);
+
+  UserStoryPage({required this.userList, required this.alluserList, Key? key}) : super(key: key);
 
   @override
-  State<UserProfilePage> createState() => _UserProfilePageState();
+  State<UserStoryPage> createState() => _UserProfilePageState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage> {
+class _UserProfilePageState extends State<UserStoryPage> {
   String? _image;
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -38,7 +38,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: EdgeInsets.only(top: 10, bottom: 10),
             children: [
               //pick profile picture label
-              const Text('Pick Profile Picture',
+              const Text('Upload Story',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
 
@@ -67,7 +67,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             _image = image.path;
                           });
 
-                          APIs.sendStoryMedia(File(_image!));
+                          APIs.sendStoryMedia(File(_image!), isPublic: false);
 
                           // for hiding bottom sheet
                           Navigator.pop(context);
@@ -92,7 +92,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             _image = image.path;
                           });
 
-                          APIs.sendStoryMedia(File(_image!));
+                          APIs.sendStoryMedia(File(_image!), isPublic: false);
 
                           // for hiding bottom sheet
                           Navigator.pop(context);
@@ -105,10 +105,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           );
         });
   }
-
   @override
   Widget build(BuildContext context) {
-    log('user Story list statys ${widget.userList[1].status}');
     return Scaffold(
       body: Container(
 
@@ -128,18 +126,23 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.network(
-                            height: 60,
-                            width: 60,
-                            fit: BoxFit.cover,
-                            APIs.me.image,
-                            errorBuilder: (context, url, error) =>
-                            const CircleAvatar(
-                              radius: 30,
-                              child: Icon(CupertinoIcons.person),
-                            ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MystatusPage(user: APIs.me),
+                              ),
+                            );
+                          },
+                          child: StatusView(
+                            radius: 30,
+                            seenColor: Theme.of(context).primaryColor,
+                            indexOfSeenStatus: 0,
+                            strokeWidth: 2,
+                            numberOfStatus: APIs.me.status,
+                            unSeenColor: Theme.of(context).secondaryHeaderColor,
+                            centerImageUrl: APIs.me.image,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -165,11 +168,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               ),
               const CenteredTextDivider(text: 'Recent Updates'),
-              widget.userList.isEmpty? Container() : Flexible(
+              widget.userList.length == 0? Flexible(child: Container()) : Flexible(
                 child: ListView.builder(
                   itemCount: widget.userList.length,
                   itemBuilder: (context, index) {
-                    if (widget.userList[index].status == 0) {
+                    if (widget.userList[index].status_f == 0) {
                       return Container(); // Skip users with status 0
                     }
 
@@ -180,7 +183,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => statusPage(user: widget.userList[index]),
+                                builder: (context) => statusPage(user: widget.userList[index],public: false,),
                               ),
                             );
                           },
@@ -193,7 +196,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   seenColor: Theme.of(context).primaryColor,
                                   indexOfSeenStatus: 0,
                                   strokeWidth: 2,
-                                  numberOfStatus: widget.userList[index].status,
+                                  numberOfStatus: widget.userList[index].status_f,
                                   unSeenColor: Theme.of(context).secondaryHeaderColor,
                                   centerImageUrl: widget.userList[index].image,
                                 ),
@@ -219,9 +222,68 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ],
                     );
                   },
-                )
-
+                ),
               ),
+
+
+              widget.userList.length == 0 ? Container() :  const CenteredTextDivider(text: 'Public Story'),
+              widget.alluserList.length == 0? Flexible(child: Container()) : Flexible(
+                child: ListView.builder(
+                  itemCount: widget.alluserList.length,
+                  itemBuilder: (context, index) {
+                    if (widget.alluserList[index].status_p == 0) {
+                      return Container(); // Skip users with status 0
+                    }
+
+                    return Column(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => statusPage(user: widget.alluserList[index], public: true,),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.all( AppSize.s15),
+                            child: Row(
+                              children: [
+                                StatusView(
+                                  radius: 30,
+                                  seenColor: Theme.of(context).primaryColor,
+                                  indexOfSeenStatus: 0,
+                                  strokeWidth: 2,
+                                  numberOfStatus: widget.alluserList[index].status_p,
+                                  unSeenColor: Theme.of(context).secondaryHeaderColor,
+                                  centerImageUrl: widget.alluserList[index].image,
+                                ),
+                                SizedBox(width: AppSize.s10),
+                                Expanded(
+                                  child: Text(
+                                    widget.alluserList[index].name,
+                                    softWrap: false,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const Divider(
+                          color: Colors.grey,
+                          thickness: 0.2,
+                          height: 0.1,
+                        ), // Add a divider between items
+                      ],
+                    );
+                  },
+                ),
+              ),
+
             ],
           ),
         ),

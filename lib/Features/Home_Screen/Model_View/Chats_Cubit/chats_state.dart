@@ -1,7 +1,11 @@
 part of 'chats_cubit.dart';
 
 sealed class ChatsState {}
+class FriendRequestsUpdated extends ChatsState {
+  final friendRequestList;
 
+  FriendRequestsUpdated({required this.friendRequestList});
+}
 final class ChatsInitial extends ChatsState {}
 
 class GEtUsers_Erorr extends ChatsState {}
@@ -34,5 +38,12 @@ class getAlluser extends ChatsState {
   List<ChatUser> UserList;
 
   getAlluser({required this.UserList});
+
+}
+
+class allUsersSucess extends ChatsState {
+  List<ChatUser> UserList;
+
+  allUsersSucess({required this.UserList});
 
 }

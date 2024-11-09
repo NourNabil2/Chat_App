@@ -47,7 +47,7 @@ class RegisterPage extends StatelessWidget {
         return ModalProgressHUD(
           inAsyncCall: isLoading,
           child: Scaffold(
-            backgroundColor: ColorApp.kPrimaryColor,
+            backgroundColor: Colors.white,
             body: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Form(
@@ -65,17 +65,14 @@ class RegisterPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'ChatO sign-in',
+                          'SnapTime sign-in',
                           style: TextStyle(
                             fontSize: 32,
-                            color: Colors.white,
+                            color: Colors.black,
                             fontFamily: 'pacifico',
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(
-                      height: 75,
                     ),
                     const Row(
                       children: [
@@ -92,65 +89,58 @@ class RegisterPage extends StatelessWidget {
                       height: 20,
                     ),
 
-                    CustomFormTextField(
-                      onChanged: (data) {
-                        userName = data;
+                    CustomLoginTextField(
+                      validationRegEx: non_VALIDATION_REGEX,
+                      labelText: "USERNAME",
+                      secondaryText: "Use unique username",
+                      hintText: "username",
+                      onChanged: (value) {
+                        userName = value;
                       },
-                      hintText: 'User Name',
                     ),
 
                     const SizedBox(
                       height: 10,
                     ),
-                    CustomFormTextField(
-                      onChanged: (data) {
-                        password = data;
-                      },
-                      hintText: 'Password',
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.length < 6) {
-                          return 'Password must be at least 6 characters long.';
-                        }
-                        return null; // Return null if validation passes
+
+                    CustomLoginTextField(
+                      validationRegEx: PASSWORD_VALIDATION_REGEX,
+                      labelText: "Password",
+                      secondaryText: "Use Strong Password",
+                      hintText: "password",
+                      onChanged: (value) {
+                        password = value;
                       },
                     ),
-
                     const SizedBox(
                       height: 20,
                     ),
-                    CustomButon(
-                      onTap: () async {
+                    ElevatedButton(
+                      onPressed:() async {
                         if (formKey.currentState!.validate()) {
                           Cubit.registerUser(email: '$userName@chato.com', password: password! , userName: userName! );
                         } else {}
                       },
-                      text: 'REGISTER',
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Sign In',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(
                       height: 10,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'already have an account?',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            '  Login',
-                            style: TextStyle(
-                              color: Color(0xffC7EDE6),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),

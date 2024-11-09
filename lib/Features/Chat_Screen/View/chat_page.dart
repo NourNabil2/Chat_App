@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chats/Core/Functions/Time_Format.dart';
+import 'package:chats/Core/Network/notification_service.dart';
 import 'package:chats/Core/widgets/chat_buble.dart';
 import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Profile_Screen/View_Data/profile_cubit.dart';
@@ -8,8 +10,6 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart';
-import '../../../Core/Functions/Time_Format.dart';
 import '../../../Core/Network/API.dart';
 import '../../../Core/Utils/Colors.dart';
 import '../../../Core/Utils/constants.dart';
@@ -37,32 +37,51 @@ class _ChatPageState extends State<ChatPage> {
 
   TextEditingController controller = TextEditingController();
 
-
-
   bool _isUploading = false;
 
-  @override
-  Widget build(BuildContext context) {
-    void deleteOldMessages() {
-      DateTime currentTime = DateTime.now();
+  void deleteAllMessages() {
+    // Loop through the messagesList and check each message
+    for (var message in messagesList) {
+        APIs.deleteAllMessagesFromUser(message); // Call the delete API or function
+    }
+  }
+// The deleteOldMessages method
+  void deleteOldMessages() {
+    DateTime currentTime = DateTime.now();
+    debugPrint('Current time: ${currentTime}');
 
-      // Loop through the messagesList and check each message
-      for (var message in messagesList) {
-        // Convert the sent property from String to int, then to DateTime
-        int messageTimestamp = int.parse(message.sent); // Convert string to int
-        DateTime messageTime = DateTime.fromMillisecondsSinceEpoch(messageTimestamp); // Create DateTime
-
-        // Calculate the difference between now and when the message was sent
-        Duration difference = currentTime.difference(messageTime);
-
-        // If the message is older than 24 hours (1 day)
-        if (difference.inHours >= 24) {
-          APIs.deleteMessage(message); // Call the delete API or function
-        }
-      }
+    if (messagesList.isEmpty) {
+      debugPrint('The list is empty.');
+      return;
     }
 
+    for (var message in messagesList) {
+      // Convert the sent timestamp to DateTime
+      int messageTimestamp = int.parse(message.sent);
+      DateTime messageTime = DateTime.fromMillisecondsSinceEpoch(messageTimestamp);
+      debugPrint('Message time: ${Format_Time.getDetailedFormattedTime(message.sent)}');
 
+      // Calculate the difference between now and when the message was sent
+      Duration difference = currentTime.difference(messageTime);
+      debugPrint('Difference: ${difference.inHours} hours');
+
+      // Delete the message if it is older than 1 day
+      if (difference.inHours >= 24) {
+        APIs.deleteMessage(message); // Call the delete API or function
+        debugPrint('Message deleted: ${Format_Time.getDetailedFormattedTime(message.sent)}');
+      }
+    }
+  }
+
+
+  @override
+  void initState() {
+    // Call the deleteOldMessages function when exiting the chat page
+    deleteAllMessages();
+    super.initState();
+  }
+
+  Widget build(BuildContext context) {
     // ChatCubit Cubit = BlocProvider.of<ChatCubit>(context);
     return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -79,12 +98,10 @@ class _ChatPageState extends State<ChatPage> {
     }
     },
       child: Scaffold(
-
         appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColorDark,
+          backgroundColor: Colors.transparent.withOpacity(0.3),
           automaticallyImplyLeading: false,
           flexibleSpace: appBar(context),
-
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -109,10 +126,9 @@ class _ChatPageState extends State<ChatPage> {
                         final data = snapshot.data?.docs;
                         messagesList = data?.map((e) => Message.fromJson(e.data())).toList() ?? [];
 
-                        // Call the deleteOldMessages function to clean up old messages
-                        deleteOldMessages();
-
                         if (messagesList.isNotEmpty) {
+                          // Call the deleteOldMessages function to clean up old messages
+                          deleteOldMessages();
                           return ListView.builder(
                             reverse: true,
                             itemCount: messagesList.length,
@@ -124,7 +140,7 @@ class _ChatPageState extends State<ChatPage> {
                           );
                         } else {
                           return Center(
-                            child: Text('No messages', style: Theme.of(context).textTheme.titleMedium),
+                            child: Container(),
                           );
                         }
                     }
@@ -175,84 +191,99 @@ class _ChatPageState extends State<ChatPage> {
               final data = snapshot.data?.docs;
               final list =
                   data?.map((e) => ChatUser.fromJson(e.data())).toList() ?? [];
-              return Row(
-                children: [
-                  //back button
-                  IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon:
-                       Icon(Icons.arrow_back, color: Theme.of(context).textTheme.bodyMedium!.color,)),
+              return Container(
+                decoration: const BoxDecoration(
+                    border: Border(
+                  bottom: BorderSide(
+                    color: ColorApp.bg_gray, // Color of the top border
+                    width: 2.0, // Width of the top border
+                  ),)),
+                child: Row(
+                  children: [
+                    //back button
+                    IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon:
+                         Icon(Icons.arrow_back_ios, color: Theme.of(context).textTheme.bodyMedium!.color,)),
 
-                  //user profile picture
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      width: 40,
-                      height:40, //todo
-                      imageUrl:
-                      list.isNotEmpty ? list[0].image : widget.user.image,
-                      errorWidget: (context, url, error) => const CircleAvatar(
-                          child: Icon(CupertinoIcons.person)),
-                    ),
-                  ),
-
-                  //for adding some space
-                  const SizedBox(width: 10),
-
-                  //user name & last seen time
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //user name
-                      Text(list.isNotEmpty ? list[0].name : widget.user.name,
-                          style: Theme.of(context).textTheme.bodyMedium,
-
+                    //user profile picture
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        width: 40,
+                        height:40, //todo
+                        imageUrl:
+                        list.isNotEmpty ? list[0].image : widget.user.image,
+                        errorWidget: (context, url, error) => const CircleAvatar(
+                            child: Icon(CupertinoIcons.person)),
                       ),
+                    ),
 
-                      //for adding some space
-                      const SizedBox(height: 2),
+                    //for adding some space
+                    const SizedBox(width: 10),
 
-                     // last seen time of user
-                      Text(
-                          list.isNotEmpty ? list[0].isOnline ? 'Online' : "" :"",
-                          style: Theme.of(context).textTheme.bodySmall, ),
-                    ],
-                  )
-                ],
+                    //user name & last seen time
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        //user name
+                        Text(list.isNotEmpty ? list[0].name : widget.user.name,
+                            style: Theme.of(context).textTheme.bodyMedium,
+
+                        ),
+
+                        //for adding some space
+                        const SizedBox(height: 2),
+
+                       // last seen time of user
+                        Text(
+                            list.isNotEmpty ? list[0].isOnline ? 'Online' : "" :"",
+                            style: Theme.of(context).textTheme.bodySmall, ),
+                      ],
+                    )
+                  ],
+                ),
               );
             }));
   }
 
   Widget chatInput(context) {
     return Container(
-      color: Theme.of(context).primaryColor,
+      decoration: BoxDecoration(color:Colors.transparent.withOpacity(0.3), border: Border(
+      top: BorderSide(
+      color: ColorApp.bg_gray, // Color of the top border
+        width: 2.0, // Width of the top border
+      ),)),
       child: Row(
         children: [
           //take image from camera button
-          IconButton(
-            onPressed: () async {
-              final ImagePicker picker = ImagePicker();
-              // Pick a video
-              final XFile? video = await picker.pickVideo(
-                source: ImageSource.camera, // You can also change this to ImageSource.gallery if needed
-                maxDuration: const Duration(seconds: 60), // Set a max duration if desired
-              );
+          CircleAvatar(
+            backgroundColor: ColorApp.bg_gray,
+            child: IconButton(
+              onPressed: () async {
+                final ImagePicker picker = ImagePicker();
+                // Pick a video
+                final XFile? video = await picker.pickVideo(
+                  source: ImageSource.camera, // You can also change this to ImageSource.gallery if needed
+                  maxDuration: const Duration(seconds: 60), // Set a max duration if desired
+                );
 
-              if (video != null) {
-                log('Video Path: ${video.path}');
-                setState(() => _isUploading = true);
+                if (video != null) {
+                  log('Video Path: ${video.path}');
+                  setState(() => _isUploading = true);
 
-                // Sending the video
-                await APIs.sendChatVideo(widget.user, File(video.path));
+                  // Sending the video
+                  await APIs.sendChatVideo(widget.user, File(video.path));
 
-                setState(() => _isUploading = false);
-              }
-            },
-            icon: Icon(
-              Icons.videocam_rounded, // Changed the icon to video camera icon
-              color: Theme.of(context).iconTheme.color,
-              size: 26,
+                  setState(() => _isUploading = false);
+                }
+              },
+              icon: Icon(
+                Icons.videocam_rounded, // Changed the icon to video camera icon
+                color: Theme.of(context).iconTheme.color,
+                size: 26,
+              ),
             ),
           ),
 
@@ -270,8 +301,11 @@ class _ChatPageState extends State<ChatPage> {
                   setState(() => _isUploading = false);
                 }
               },
-              icon: Icon(Icons.camera_alt_rounded,
-                  color: Theme.of(context).iconTheme.color, size: 26)),
+              icon: CircleAvatar(
+                backgroundColor: ColorApp.bg_gray,
+                child: Icon(Icons.camera_alt_rounded,
+                    color: Theme.of(context).iconTheme.color, size: 26),
+              )),
           //input field & buttons
           Expanded(
             child: Card(
@@ -341,11 +375,18 @@ SizedBox(width: 10,),
                 if (messagesList.isEmpty) {
                   //on first message (add user to my_user collection of chat user)
                   APIs.sendFirstMessage(
-                      widget.user, controller.text, Type.text);
+                    widget.user,controller.text ,Type.text
+                  );
+                  NotificationHelper.sendNotification(
+                      targetToken:  widget.user.pushToken,
+                      title: APIs.me.name,body: 'Send you a new message');
                 } else {
                 //  simply send message
                   APIs.sendMessage(
                       widget.user, controller.text, Type.text);
+                  NotificationHelper.sendNotification(
+                      targetToken:  widget.user.pushToken,
+                      title: APIs.me.name,body: 'Send you a new message');
                 }
                 controller.text = '';
               }
@@ -354,7 +395,6 @@ SizedBox(width: 10,),
             padding:
             const EdgeInsets.only(top: 10, bottom: 10, right: 5, left: 10),
             shape: const CircleBorder(),
-            color: Theme.of(context).primaryColor,
             child: Icon(Icons.send, color: Theme.of(context).primaryColorLight, size: 28),
           )
         ],

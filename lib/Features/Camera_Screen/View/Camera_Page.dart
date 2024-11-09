@@ -266,7 +266,7 @@ class _CameraScreenState extends State<CameraScreen> {
       return;
     }
 
-    APIs.sendStoryMedia(File(VIDEO_PATH!), isVideo: true);
+    APIs.sendStoryMedia(File(VIDEO_PATH!), isVideo: true, isPublic: false);
 
     // Navigate to SelectPageScreen with the selected video
     Navigator.push(
@@ -277,19 +277,6 @@ class _CameraScreenState extends State<CameraScreen> {
     );
 
     print("Video sent!");
-  }
-
-
-  void _sendStoryImage() {
-    APIs.sendStoryMedia(File(_imagePath!));
-
-    print("Picture sent!");
-  }
-
-  void _sendStoryVideo() {
-    APIs.sendStoryMedia(File(VIDEO_PATH!) ,isVideo: true);
-
-    print("Picture sent!");
   }
 
   void _cancelPicture() {
@@ -451,7 +438,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 CustomButton(
                     context, _saveVideo, 'Save', Icons.download),
                 Spacer(),
-                CustomButton(context, _sendStoryVideo, '+ stories', null),
                 CustomButton(context, _sendVideo, 'Send to >', null),
                 SizedBox(width: 10),
 
@@ -463,7 +449,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 CustomButton(
                     context, _savePicture, 'Save', Icons.download),
                 Spacer(),
-                CustomButton(context, _sendStoryImage, '+ stories', null),
                 CustomButton(context, _sendPicture, 'Send to >', null),
                 SizedBox(width: 10),
                 // Remove this CustomButton for 'X' since it's now at the top

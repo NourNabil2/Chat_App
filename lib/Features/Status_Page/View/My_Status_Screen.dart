@@ -8,16 +8,15 @@ import 'package:chats/Features/Status_Page/View/widget/profile_status.dart';
 import 'package:flutter/material.dart';
 import 'package:story_view/story_view.dart';
 
-class statusPage extends StatefulWidget {
+class MystatusPage extends StatefulWidget {
   final ChatUser user;
-  final bool public;
-  const statusPage({super.key, required this.user,required this.public});
+  const MystatusPage({super.key, required this.user});
 
   @override
-  State<statusPage> createState() => _statusPageState();
+  State<MystatusPage> createState() => _statusPageState();
 }
 
-class _statusPageState extends State<statusPage> {
+class _statusPageState extends State<MystatusPage> {
   final controller = StoryController();
   List<Status> StatusList = [];
   List<StoryItem> storyItems = [];
@@ -26,7 +25,7 @@ class _statusPageState extends State<statusPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-        stream: widget.public ? APIs.getPublicStoryMedia(widget.user) : APIs.getPrivateStoryMedia(widget.user),
+        stream: APIs.getAllStoryMedia(widget.user),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
@@ -40,7 +39,7 @@ class _statusPageState extends State<statusPage> {
             case ConnectionState.done:
               final data = snapshot.data?.docs;
               StatusList = data?.map((e) => Status.fromJson(e.data())).toList() ?? [];
-                log('${StatusList}');
+
               storyItems.clear(); // Clear previous items
 
               for (var status in StatusList) {

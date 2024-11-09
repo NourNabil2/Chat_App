@@ -21,12 +21,12 @@ class _appbarSliverState extends State<appbarSliver> {
   @override
   void initState() {
     super.initState();
-    context.read<FreiendRequestCubit>().fetchFriendRequests();
+    context.read<ChatsCubit>().fetchFriendRequests();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FreiendRequestCubit, FreiendRequestState>(
+    return BlocBuilder<ChatsCubit, ChatsState>(
       builder: (context, state) {
         int friendRequestCount = 0;
 
@@ -117,6 +117,6 @@ class _appbarSliverState extends State<appbarSliver> {
       style: Theme.of(context).textTheme.bodyMedium,
       onChanged: (val) => ChatsCubit.get(context).search(val),
     )
-        : Center(child: Text('Chats', style: Theme.of(context).textTheme.titleMedium));
+        : Center(child: Text('Chat', style: Theme.of(context).textTheme.titleMedium));
   }
 }

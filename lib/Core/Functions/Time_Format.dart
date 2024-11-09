@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Format_Time {
   // for getting formatted time from milliSecondsSinceEpochs String
@@ -7,6 +8,13 @@ class Format_Time {
     final date = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
     return TimeOfDay.fromDateTime(date).format(context);
   }
+
+  // for getting formatted time in detailed format: "yyyy-MM-dd HH:mm:ss.SSSSSS"
+  static String getDetailedFormattedTime(String time) {
+    final date = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
+    return DateFormat('yyyy-MM-dd HH:mm:ss.SSSSSS').format(date);
+  }
+
   // for getting formatted time for sent & read
   static String getMessageTime(
       {required BuildContext context, required String time}) {
@@ -68,7 +76,7 @@ class Format_Time {
 
     String month = _getMonth(time);
 
-    return 'Last seen on ${time.day} $month on $formattedTime';
+    return 'Last seen on ${time.day} $month at $formattedTime';
   }
 
   // get month name from month no. or index

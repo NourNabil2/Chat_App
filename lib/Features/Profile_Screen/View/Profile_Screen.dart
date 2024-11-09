@@ -1,11 +1,10 @@
 
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chats/Core/Network/API.dart';
-import 'package:chats/Core/Utils/Colors.dart';
 import 'package:chats/Core/Utils/constants.dart';
 import 'package:chats/Core/widgets/Selection_Background.dart';
 import 'package:chats/Core/widgets/component.dart';
@@ -43,6 +42,21 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _image;
+  List<Color> colors = [
+    Color(0xFFFFFC00), // Snapchat Yellow
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.purple,
+    Colors.orange,
+  ];
+
+  late Color currentColor;
+  @override
+  void initState() {
+    currentColor = colors[Random().nextInt(colors.length)];
+    super.initState();
+  }
   Widget BuildSettingScreen() {
 
     return SliverFillRemaining(
@@ -61,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ExpansionPanelList(
-                      expandIconColor: Theme.of(context).secondaryHeaderColor,
+                      expandIconColor: Theme.of(context).hintColor,
                       elevation: 0,
                       animationDuration: const Duration(milliseconds:700),
                       expansionCallback: (panelIndex, isExpanded) {
@@ -144,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             leading: IconButton(onPressed: () => Navigator.pop(context), icon: Icon(CupertinoIcons.back,color: Theme.of(context).scaffoldBackgroundColor,)),
             systemOverlayStyle:
             const SystemUiOverlayStyle(statusBarBrightness: Brightness.light),
-            backgroundColor: Theme.of(context).primaryColor,
+            backgroundColor: Theme.of(context).primaryColorLight,
             expandedHeight: 270,
             elevation: 0.0,
             pinned: true,
@@ -156,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 StretchMode.zoomBackground
               ],
               background: Container(
-                decoration: BoxDecoration(gradient: LinearGradient(colors: [Theme.of(context).primaryColor,Theme.of(context).primaryColorLight,],)),
+                decoration: BoxDecoration(color: currentColor,),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -281,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final XFile? image = await picker.pickImage(
                             source: ImageSource.gallery, imageQuality: 80);
                         if (image != null) {
-                          log('Image Path: ${image.path}');
+                          //log('Image Path: ${image.path}');
                           setState(() {
                             _image = image.path;
                           });
@@ -305,7 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final XFile? image = await picker.pickImage(
                             source: ImageSource.camera, imageQuality: 80);
                         if (image != null) {
-                          log('Image Path: ${image.path}');
+                        //  log('Image Path: ${image.path}');
                           setState(() {
                             _image = image.path;
                           });
@@ -344,7 +358,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
 
         Center(
-          child: TextButton(onPressed: ()
+          child: TextButton(
+              onPressed: ()
           {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
@@ -354,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context, 'Profile Updated Successfully!'); //todo
               });
             }
-          }, child: Text(AppString.sedit),style: Theme.of(context).textButtonTheme.style ),
+          },style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Theme.of(context).highlightColor)), child: Text(AppString.sedit,style: Theme.of(context).textTheme.bodyMedium,) ),
         ),
       ],
     );

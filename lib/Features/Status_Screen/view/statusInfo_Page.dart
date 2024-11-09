@@ -1,35 +1,51 @@
 import 'dart:developer';
-
 import 'package:chats/Features/Status_Page/View/Status_Page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../Core/widgets/Card_User.dart';
 import '../../Home_Screen/Data/Users.dart';
 import '../../Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
 
-class statusInfoPage extends StatefulWidget {
-  const statusInfoPage({super.key});
+class StatusInfoPage extends StatefulWidget {
+  const StatusInfoPage({super.key});
 
   @override
-  State<statusInfoPage> createState() => _statusInfoPageState();
+  State<StatusInfoPage> createState() => _StatusInfoPageState();
 }
 
-class _statusInfoPageState extends State<statusInfoPage> {
-  List<ChatUser> UserList = [];
+class _StatusInfoPageState extends State<StatusInfoPage> {
+  List<ChatUser> userList = [];
+  List<ChatUser> allUserList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch all users and specific user stories on initialization
+    final chatsCubit = ChatsCubit.get(context);
+    chatsCubit.allUsers();
+    chatsCubit.getMyUsersId();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<ChatsCubit, ChatsState>(
-      listener: (context, state) {
-        if (state is SearchIconState) {
-          BlocProvider.of<ChatsCubit>(context).getMyUsersId();
-        }
-      },
-      builder: (context, state) {
-        UserList = (state is getAlluser) ? state.UserList : [];
-log('user Story list ${UserList.length}');
-        return UserList.isEmpty ? Container(color: Theme.of(context).scaffoldBackgroundColor,child: Center(child: Text('No Stories',style: Theme.of(context).textTheme.headlineMedium,),),): UserProfilePage(userList: UserList);
-      },
+    return Scaffold(
+      body: BlocConsumer<ChatsCubit, ChatsState>(
+        listener: (context, state) {
+          // Update user lists based on the state
+          if (state is getAlluser) {
+            userList = state.UserList;
+            log('Updated userList with ${userList.length} users');
+          } else if (state is allUsersSucess) {
+            allUserList = state.UserList;
+            log('Updated allUserList with ${allUserList.length} users');
+          }
+        },
+        builder: (context, state) {
+          return UserStoryPage(
+            userList: userList,
+            alluserList: allUserList,
+          );
+        },
+      ),
     );
   }
 }

@@ -35,6 +35,8 @@ class APIs {
       // Todo ::
       image: user.photoURL.toString(),
       status: 0,
+      status_f: 0,
+      status_p: 0,
       createdAt: '',
       isOnline: false,
       lastActive: '',
@@ -84,6 +86,8 @@ class APIs {
       about: "Hey, I'm using ChatO!!",
       image: '', // Placeholder image URL
       status: 0,
+      status_p: 0,
+      status_f: 0,
       createdAt: time,
       isOnline: false,
       lastActive: time,
@@ -143,6 +147,8 @@ class APIs {
         // TODO:: const
         image: user.photoURL.toString(),
         status: 0,
+        status_f: 0,
+        status_p: 0,
         createdAt: time,
         isOnline: false,
         userName: '',
@@ -364,7 +370,6 @@ class APIs {
     });
   }
 
-
   // for getting id's of known users from firestore database
   static Stream<QuerySnapshot<Map<String, dynamic>>> getMyUsersId() {
     return firestore
@@ -554,6 +559,25 @@ class APIs {
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }
+  static Stream<int> getPublicStatusCount() {
+    return firestore
+        .collection('Status')
+        .doc(me.email)
+        .collection('media')
+        .where('public', isEqualTo: true) // Filter for public status
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+  static Stream<int> getPrivateStatusCount() {
+    return firestore
+        .collection('Status')
+        .doc(me.email)
+        .collection('media')
+        .where('public', isEqualTo: false) // Filter for private status
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
 
   static Timer deleteStatus(String time, String ext, bool isVideo) {
     return Timer(const Duration(days: 1), () async {
@@ -577,7 +601,7 @@ class APIs {
     });
   }
 
-  static Future<void> sendStoryMedia(File file, {bool isVideo = false}) async {
+  static Future<void> sendStoryMedia(File file, {bool isVideo = false, required bool isPublic}) async {
     // Message sending time (also used as ID)
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -600,6 +624,7 @@ class APIs {
 
     // Message to send
     final Status status = Status(
+      public: isPublic,
       status: mediaUrl,
       image: me.image,
       seen: [],
@@ -613,12 +638,18 @@ class APIs {
     final sent = firestore.collection('Status/${me.email}/media/');
     await sent.doc(time).set(status.toJson());
 
-    // Get friend request count
-    final StatusCountStream = getStatusCount();
-    final StatusCount = await StatusCountStream.first;
+    // Get counts for public, private, and total stories
+    final publicCountStream = getPublicStatusCount();
+    final privateCountStream = getPrivateStatusCount();
+    final publicCount = await publicCountStream.first;
+    final privateCount = await privateCountStream.first;
+    final totalCount = publicCount + privateCount;
 
+    // Update all three fields in the user's document in Firestore
     firestore.collection('Users').doc(user.uid).update({
-      'story': StatusCount,
+      'story': totalCount,
+      'story_p': publicCount,
+      'story_f': privateCount,
     });
 
     // Delete media after 24 hours
@@ -626,8 +657,25 @@ class APIs {
   }
 
 
+
+
+// Retrieve public story images or videos
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getPublicStoryMedia(ChatUser user) {
+    return firestore
+        .collection('Status/${user.email}/media/')
+        .where('public', isEqualTo: true)
+        .snapshots();
+  }
+
+// Retrieve all story images or videos regardless of public/private status
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getPrivateStoryMedia(ChatUser user) {
+    return firestore
+        .collection('Status/${user.email}/media/')
+        .where('public', isEqualTo: false)
+        .snapshots();
+  }
 // Retrieve story images or videos
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getStoryMedia(ChatUser user) {
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllStoryMedia(ChatUser user) {
     return firestore
         .collection('Status/${user.email}/media/')
         .orderBy('sent', descending: true)
@@ -802,6 +850,29 @@ class APIs {
     }
   }
 
+// حذف جميع الرسائل فقط من جانب المستخدم
+  static Future<void> deleteAllMessagesFromUser(Message message) async {
+    // احصل على جميع الوثائق في مجموعة 'messages'
+    QuerySnapshot querySnapshot = await firestore.collection(
+        'chats/${getConversationID(message.toId)}/messages/').get();
+
+    // تكرار عبر جميع الوثائق
+    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+      // تحقق مما إذا كانت الرسالة تعود للمستخدم الحالي
+      if (doc.id == message.sent) {
+        // احذف الرسالة من مجموعة المستخدم
+        await firestore
+            .collection('chats/${getConversationID(message.toId)}/messages/')
+            .doc(doc.id)
+            .delete();
+
+        // إذا كانت الرسالة صورة، احذفها من التخزين
+        if (message.type == Type.image) {
+          await storage.refFromURL(message.msg).delete();
+        }
+      }
+    }
+  }
 
   //delete message
   static Future<void> deleteMessage(Message message) async {
