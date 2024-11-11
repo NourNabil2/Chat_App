@@ -1,4 +1,5 @@
 
+import 'package:chats/Core/Utils/Colors.dart';
 import 'package:flutter/material.dart';
 
 
@@ -44,6 +45,10 @@ class AppSize
   static double expande = 270.0;
 }
 
+TextStyle statusStyle()
+{
+  return const TextStyle(color: ColorApp.kwhiteColor);
+}
 final RegExp EMAIL_VALIDATION_REGEX =
 RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
 

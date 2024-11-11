@@ -5,21 +5,22 @@ import 'package:chats/Core/Utils/constants.dart';
 import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Status_Page/Model/Status.dart';
 import 'package:chats/Features/Status_Page/View/widget/profile_status.dart';
+import 'package:chats/Features/Status_Page/View/widget/user_status.dart';
 import 'package:flutter/material.dart';
 import 'package:story_view/story_view.dart';
 
-class statusPage extends StatefulWidget {
+class StatusPage extends StatefulWidget {
   final ChatUser user;
   final bool public;
-  const statusPage({super.key, required this.user,required this.public});
+  const StatusPage({super.key, required this.user, required this.public});
 
   @override
-  State<statusPage> createState() => _statusPageState();
+  State<StatusPage> createState() => _StatusPageState();
 }
 
-class _statusPageState extends State<statusPage> {
+class _StatusPageState extends State<StatusPage> {
   final controller = StoryController();
-  List<Status> StatusList = [];
+  List<Status> statusList = [];
   List<StoryItem> storyItems = [];
 
   @override
@@ -35,44 +36,39 @@ class _statusPageState extends State<statusPage> {
               );
             case ConnectionState.none:
               return const Center(child: Text('No Network'));
-
             case ConnectionState.active:
             case ConnectionState.done:
               final data = snapshot.data?.docs;
-              StatusList = data?.map((e) => Status.fromJson(e.data())).toList() ?? [];
-                log('${StatusList}');
-              storyItems.clear(); // Clear previous items
+              statusList = data?.map((e) => Status.fromJson(e.data())).toList() ?? [];
 
-              for (var status in StatusList) {
-                // Validate URL before adding to storyItems
+              // Call function to delete outdated stories
+              _deleteOutdatedStories(data);
+
+              storyItems.clear(); // Clear previous items
+              for (var status in statusList) {
                 if (status.status != null && status.status.isNotEmpty) {
                   if (status.type == Type_s.image) {
-                    log('Adding image story: ${status.status}');
                     storyItems.add(
                       StoryItem.pageImage(
-                        url: status.status, // URL of the image
+                        url: status.status,
                         controller: controller,
-                        duration: const Duration(seconds: 5), // Adjust duration
+                        duration: const Duration(seconds: 5),
                         loadingWidget: Image.asset(kindicator),
                       ),
                     );
                   } else {
-                    log('Adding video story: ${status.status}');
                     storyItems.add(
                       StoryItem.pageVideo(
-                        status.status, // URL of the video
+                        status.status,
                         controller: controller,
-                        shown: true, // Ensure video is shown and plays automatically
+                        shown: true,
                       ),
                     );
                   }
-                } else {
-                  // Log or handle the case where the URL is missing or invalid
-                  log('Invalid URL for status with type: ${status.type}');
                 }
               }
 
-              if (StatusList.isNotEmpty && storyItems.isNotEmpty) {
+              if (statusList.isNotEmpty && storyItems.isNotEmpty) {
                 return InteractiveViewer(
                   child: Stack(
                     children: [
@@ -88,8 +84,13 @@ class _statusPageState extends State<statusPage> {
                         },
                         indicatorForegroundColor: ColorApp.kwhiteColor,
                         controller: controller,
+                        onStoryShow: (StoryItem storyItem, int index) {
+                          final mediaId = statusList[index].sent;
+                          final friendEmail = widget.user.email;
+                          APIs.markStoryAsSeen(mediaId: mediaId, friendEmail: friendEmail);
+                        },
                       ),
-                      ProfileWidget(user: StatusList.first),
+                      userStatusWidget(user: statusList.first),
                     ],
                   ),
                 );
@@ -102,5 +103,20 @@ class _statusPageState extends State<statusPage> {
         },
       ),
     );
+  }
+
+  // Function to delete stories older than 24 hours
+  void _deleteOutdatedStories(dynamic data) {
+    final now = DateTime.now();
+    data?.forEach((doc) {
+      int storyTime = int.parse(doc['sent']);
+      DateTime messageTime = DateTime.fromMillisecondsSinceEpoch(storyTime);
+
+      if (now.difference(messageTime).inHours >= 24) {
+        bool isVideo = doc['type'] == 'video' ? true : false ;
+        APIs.deleteStoryMedia(mediaId: doc.id, isVideo: isVideo);
+        log('Deleted story with ID: ${doc.id} (older than 24 hours)');
+      }
+    });
   }
 }

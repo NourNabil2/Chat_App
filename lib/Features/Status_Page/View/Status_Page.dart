@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:status_view/status_view.dart';
 import '../../../Core/Network/API.dart';
 import '../../Home_Screen/Data/Users.dart';
-import 'Status_Screen.dart'; // Import your card user widget
+import 'User_Status_Screen.dart'; // Import your card user widget
 
 class UserStoryPage extends StatefulWidget {
   final List<ChatUser> userList; // Assume ChatUser is your user model class
@@ -183,7 +183,7 @@ class _UserProfilePageState extends State<UserStoryPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => statusPage(user: widget.userList[index],public: false,),
+                                builder: (context) => StatusPage(user: widget.userList[index],public: false,),
                               ),
                             );
                           },
@@ -242,7 +242,7 @@ class _UserProfilePageState extends State<UserStoryPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => statusPage(user: widget.alluserList[index], public: true,),
+                                builder: (context) => StatusPage(user: widget.alluserList[index], public: true,),
                               ),
                             );
                           },

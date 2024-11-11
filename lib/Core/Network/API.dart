@@ -470,15 +470,16 @@ class APIs {
   //       .map((snapshot) => snapshot.docs.length);
   // }
   //
-  // static Timer deleteStatus(time, ext) {
-  //   return Timer(const Duration(days: 1), () async {
-  //     firestore
-  //         .collection('Status/${me.email}/image/')
-  //         .doc(time).delete();
-  //     storage.ref().child(
-  //         'Story_pictures/${me.email} ${DateTime
-  //             .now()
-  //             .millisecondsSinceEpoch}.$ext').delete();
+  // static Future<void> deleteStatus(time, ext) {
+  //   storage.ref().child(
+  //       'Story_pictures/${me.email} ${DateTime
+  //           .now()
+  //           .millisecondsSinceEpoch}.$ext').delete();
+  //
+  //   return firestore
+  //       .collection('Status/${me.email}/image/')
+  //       .doc(time).delete();
+  //
   //
   //     // Get friend request count
   //     final StatusCountStream = getStatusCount();
@@ -487,7 +488,7 @@ class APIs {
   //     firestore.collection('Users').doc(user.uid).update({
   //       'story': StatusCount,
   //     });
-  //   },);
+  //   ,);
   // }
   //
   // static Future<void> sendStoryImage(File file) async {
@@ -548,17 +549,76 @@ class APIs {
   //       .orderBy('sent', descending: true)
   //       .snapshots();
   // }
-
-///
-// Update profile picture of user
-  static Stream<int> getStatusCount() {
-    return firestore
-        .collection('Status')
-        .doc(me.email)
-        .collection('media')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
+  static Future<List<ChatUser>> fetchUsersByIds(List<String> userIds) async {
+    List<ChatUser> users = [];
+    for (var userId in userIds) {
+      final doc = await FirebaseFirestore.instance.collection('Users').doc(userId).get();
+      if (doc.exists) {
+        users.add(ChatUser.fromJson(doc.data()!));
+      }
+    }
+    return users;
   }
+
+  static Future<void> markStoryAsSeen({required String mediaId, required String friendEmail}) async {
+    try {
+      // Reference to the status document in Firestore
+      final statusDocRef = firestore.collection('Status').doc(friendEmail).collection('media').doc(mediaId);
+
+      // Update the 'seen' field by adding the current user to the list of seen users
+      await statusDocRef.update({
+        'seen': FieldValue.arrayUnion([user.uid]),
+      });
+
+      log('Story marked as seen by me');
+    } catch (e) {
+      log('Error marking story as seen: $e');
+      // Handle any error or show a user-friendly message
+    }
+  }
+  static Future<void> deleteStoryMedia({required String mediaId,required bool isVideo,}) async {
+    try {
+      // Ensure that videos are saved as `.mp4` files
+      String ext = isVideo ? 'mp4' : 'jpg';
+      // Delete the media from Firestore
+      await firestore
+          .collection('Status/${user.email}/media/')
+          .doc(mediaId)
+          .delete();
+      log('Media deleted from Firestore');
+
+      // Get counts for public, private, and total stories
+      final publicCountStream = getPublicStatusCount();
+      final privateCountStream = getPrivateStatusCount();
+      final publicCount = await publicCountStream.first;
+      final privateCount = await privateCountStream.first;
+      final totalCount = publicCount + privateCount;
+
+      // Update all three fields in the user's document in Firestore
+      firestore.collection('Users').doc(user.uid).update({
+        'story': totalCount,
+        'story_p': publicCount,
+        'story_f': privateCount,
+      });
+
+
+      // Delete the media from Firebase Storage (image or video)
+      String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
+      await storage
+          .ref()
+          .child('$fileType/${user.email} $mediaId.$ext')
+          .delete();
+      log('Media deleted from Firebase Storage');
+
+
+
+
+    } catch (e) {
+      log('Error deleting story media: $e');
+      // Handle any error or show a user-friendly message
+    }
+  }
+// Update profile picture of user
   static Stream<int> getPublicStatusCount() {
     return firestore
         .collection('Status')
@@ -579,27 +639,27 @@ class APIs {
   }
 
 
-  static Timer deleteStatus(String time, String ext, bool isVideo) {
-    return Timer(const Duration(days: 1), () async {
-      // Deleting the media from Firestore
-      firestore.collection('Status/${me.email}/media/').doc(time).delete();
-
-      // Delete the media from Firebase Storage (image or video)
-      String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
-      storage
-          .ref()
-          .child('$fileType/${me.email} ${DateTime.now().millisecondsSinceEpoch}.$ext')
-          .delete();
-
-      // Get friend request count
-      final StatusCountStream = getStatusCount();
-      final StatusCount = await StatusCountStream.first;
-
-      firestore.collection('Users').doc(user.uid).update({
-        'story': StatusCount,
-      });
-    });
-  }
+  // static Timer deleteStatus(String time, String ext, bool isVideo) {
+  //   return Timer(const Duration(days: 1), () async {
+  //     // Deleting the media from Firestore
+  //     firestore.collection('Status/${me.email}/media/').doc(time).delete();
+  //
+  //     // Delete the media from Firebase Storage (image or video)
+  //     String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
+  //     storage
+  //         .ref()
+  //         .child('$fileType/${me.email} ${DateTime.now().millisecondsSinceEpoch}.$ext')
+  //         .delete();
+  //
+  //     // Get friend request count
+  //     final StatusCountStream = getStatusCount();
+  //     final StatusCount = await StatusCountStream.first;
+  //
+  //     firestore.collection('Users').doc(user.uid).update({
+  //       'story': StatusCount,
+  //     });
+  //   });
+  // }
 
   static Future<void> sendStoryMedia(File file, {bool isVideo = false, required bool isPublic}) async {
     // Message sending time (also used as ID)
@@ -652,8 +712,7 @@ class APIs {
       'story_f': privateCount,
     });
 
-    // Delete media after 24 hours
-    deleteStatus(time, ext, isVideo);
+
   }
 
 
