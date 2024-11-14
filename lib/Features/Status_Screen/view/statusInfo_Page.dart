@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:chats/Features/Status_Page/View/Status_Page.dart';
+import 'package:chats/Features/Status_Screen/status_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Home_Screen/Data/Users.dart';
-import '../../Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
 
 class StatusInfoPage extends StatefulWidget {
   const StatusInfoPage({super.key});
@@ -20,7 +20,7 @@ class _StatusInfoPageState extends State<StatusInfoPage> {
   void initState() {
     super.initState();
     // Fetch all users and specific user stories on initialization
-    final chatsCubit = ChatsCubit.get(context);
+    final chatsCubit = StatusCubit.get(context);
     chatsCubit.allUsers();
     chatsCubit.getMyUsersId();
   }
@@ -28,10 +28,10 @@ class _StatusInfoPageState extends State<StatusInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<ChatsCubit, ChatsState>(
+      body: BlocConsumer<StatusCubit, StatusState>(
         listener: (context, state) {
           // Update user lists based on the state
-          if (state is getAlluser) {
+          if (state is StatusgetAlluser) {
             userList = state.UserList;
             log('Updated userList with ${userList.length} users');
           } else if (state is allUsersSucess) {

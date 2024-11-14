@@ -42,19 +42,10 @@ class _ProfileScreenState extends State<Porfile_Other_Users> {
 
     return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: ColorApp.kPrimaryColor,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                kLogo,
-                height: 50,
-              ),
-               Text(widget.user.name), // TODO ::
-            ],
-          ),
-          centerTitle: true,
+          leading: IconButton(onPressed: () => Navigator.pop(context), icon: Icon(CupertinoIcons.back,color:Theme.of(context).hintColor,)),
+          backgroundColor: Theme.of(context).primaryColorDark,
+          elevation: 0,
+          title:  Text(widget.user.name,style: Theme.of(context).textTheme.titleMedium,),
         ),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.center,

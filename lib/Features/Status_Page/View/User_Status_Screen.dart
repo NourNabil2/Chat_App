@@ -1,10 +1,10 @@
-import 'dart:developer';
+
 import 'package:chats/Core/Network/API.dart';
+import 'package:chats/Core/Network/notification_service.dart';
 import 'package:chats/Core/Utils/Colors.dart';
 import 'package:chats/Core/Utils/constants.dart';
 import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Status_Page/Model/Status.dart';
-import 'package:chats/Features/Status_Page/View/widget/profile_status.dart';
 import 'package:chats/Features/Status_Page/View/widget/user_status.dart';
 import 'package:flutter/material.dart';
 import 'package:story_view/story_view.dart';
@@ -19,7 +19,8 @@ class StatusPage extends StatefulWidget {
 }
 
 class _StatusPageState extends State<StatusPage> {
-  final controller = StoryController();
+  final controllerStory = StoryController();
+  TextEditingController controller = TextEditingController();
   List<Status> statusList = [];
   List<StoryItem> storyItems = [];
 
@@ -51,7 +52,7 @@ class _StatusPageState extends State<StatusPage> {
                     storyItems.add(
                       StoryItem.pageImage(
                         url: status.status,
-                        controller: controller,
+                        controller: controllerStory,
                         duration: const Duration(seconds: 5),
                         loadingWidget: Image.asset(kindicator),
                       ),
@@ -60,7 +61,7 @@ class _StatusPageState extends State<StatusPage> {
                     storyItems.add(
                       StoryItem.pageVideo(
                         status.status,
-                        controller: controller,
+                        controller: controllerStory,
                         shown: true,
                       ),
                     );
@@ -83,7 +84,7 @@ class _StatusPageState extends State<StatusPage> {
                           Navigator.pop(context);
                         },
                         indicatorForegroundColor: ColorApp.kwhiteColor,
-                        controller: controller,
+                        controller: controllerStory,
                         onStoryShow: (StoryItem storyItem, int index) {
                           final mediaId = statusList[index].sent;
                           final friendEmail = widget.user.email;
@@ -91,6 +92,12 @@ class _StatusPageState extends State<StatusPage> {
                         },
                       ),
                       userStatusWidget(user: statusList.first),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: chatInput(context),
+                      ),
                     ],
                   ),
                 );
@@ -114,9 +121,73 @@ class _StatusPageState extends State<StatusPage> {
 
       if (now.difference(messageTime).inHours >= 24) {
         bool isVideo = doc['type'] == 'video' ? true : false ;
-        APIs.deleteStoryMedia(mediaId: doc.id, isVideo: isVideo);
-        log('Deleted story with ID: ${doc.id} (older than 24 hours)');
+        APIs.deleteStoryMedia(mediaId: doc.id, isVideo: isVideo,mediaUrl: data['image'],context:context);
+       // log('Deleted story with ID: ${doc.id} (older than 24 hours)');
       }
     });
+  }
+
+  Widget chatInput(context) {
+    return Container(
+      decoration: BoxDecoration(color:Colors.transparent.withOpacity(0.3), border: Border(
+        top: BorderSide(
+          color: ColorApp.bg_gray, // Color of the top border
+          width: 2.0, // Width of the top border
+        ),)),
+      child: Row(
+        children: [
+          //input field & buttons
+          Expanded(
+            child: Card(
+
+              color: Theme.of(context).primaryColorLight,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSize.s30)),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: AppSize.s10),
+                        child: TextField(
+                          style: TextStyle(color: Theme.of(context).iconTheme.color,backgroundColor: Theme.of(context).primaryColorLight,),
+                          controller: controller,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          onTap: () {
+                            controllerStory.pause();
+                          },
+                          decoration: InputDecoration(
+                              hintText: 'Type Something...',
+                              hintStyle: TextStyle(color: Theme.of(context).iconTheme.color,fontSize: 12,overflow: TextOverflow.ellipsis),
+                              border: InputBorder.none),
+                        ),
+                      )),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(width: 10,),
+          //send message button
+          MaterialButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                  //  simply send message
+                  APIs.sendMessage(
+                      widget.user, '↺ Reply on your story \n ${controller.text}', null);
+                  NotificationHelper.sendNotification(
+                      targetToken:  widget.user.pushToken,
+                      title: APIs.me.name,body: 'replay to your story');
+                controller.text = '';
+              }
+            },
+            minWidth: 0,
+            padding:
+            const EdgeInsets.only(top: 10, bottom: 10, right: 5, left: 10),
+            shape: const CircleBorder(),
+            child: Icon(Icons.send, color: Theme.of(context).primaryColorLight, size: 28),
+          )
+        ],
+      ),
+    );
   }
 }

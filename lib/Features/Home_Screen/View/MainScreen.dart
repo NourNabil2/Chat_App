@@ -56,9 +56,10 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
       builder: (context, state) {
         return Scaffold(
           body: TabBarView(
+
             controller: tabController,
             dragStartBehavior: DragStartBehavior.down,
-            physics: const BouncingScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(), // Disables scrolling
             children: [
               //MapScreen(),
               HomeScreen(controller: ScrollController()),

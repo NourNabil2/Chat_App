@@ -26,7 +26,8 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColorDark,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+
+        iconTheme: IconThemeData(color: Theme.of(context).hintColor),
         backgroundColor: Theme.of(context).primaryColorDark,
         elevation: 0,
         title: Text('Friend Requests',style: Theme.of(context).textTheme.bodyMedium,),

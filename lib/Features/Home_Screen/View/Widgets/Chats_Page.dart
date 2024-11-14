@@ -12,10 +12,6 @@ class chatsPage extends StatefulWidget {
 }
 class _chatsPageState extends State<chatsPage> {
   @override
-  void initState() {
-    super.initState();
-  }
-  @override
   Widget build(BuildContext context) {
 
     return CustomScrollView(

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:chats/Core/Functions/show_snack_bar.dart';
 import 'package:chats/Core/Utils/constants.dart';
 import 'package:chats/Features/Status_Page/View/widget/story_viewers_sheet.dart';
 import 'package:flutter/material.dart';
@@ -38,20 +39,43 @@ class _statusPageState extends State<MystatusPage> {
 
   void _deleteStory(Status status) async {
     setState(() {
-      isDeleting = true;  // Set the deleting state to true
+      isDeleting = true; // Set the deleting state to true
     });
 
-    // Implement deletion logic here, e.g., call an API to delete the story
-    await APIs.deleteStoryMedia(
-      isVideo: status.type == 'image' ? false : true,
-      mediaId: status.sent,
-    );
+    try {
+      controller.pause();
+      // Attempt to delete the story by calling the delete API
+      final bool isDeleted = await APIs.deleteStoryMedia(
+        isVideo: status.type == Type_s.image ? false : true ,
+        mediaId: status.sent,
+        mediaUrl: status.status,
+        context: context
+      );
 
-    setState(() {
-      isDeleting = false; // Reset the deleting state after completion
-      StatusList.remove(status); // Remove the story from the list after deletion
-    });
+      if (isDeleted) {
+        // If deletion was successful, remove the story from the list
+        setState(() {
+          StatusList.remove(status);
+        });
+        // Show a success message to the user
+        Dialogs.showSnackbar(context,'Story deleted successfully');
+
+      } else {
+        // Show an error message if deletion failed for any reason
+       // Dialogs.showSnackbar(context,'Failed to delete story. Please try again.');
+
+      }
+    } catch (error) {
+      // Handle unexpected errors by showing an error message
+      Dialogs.showSnackbar(context,'An error occurred: $error');
+    } finally {
+      // Reset the deleting state after completion or failure
+      setState(() {
+        isDeleting = false;
+      });
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {

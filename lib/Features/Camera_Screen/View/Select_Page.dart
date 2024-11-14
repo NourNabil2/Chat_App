@@ -44,6 +44,12 @@ class _HomeScreenState extends State<SelectPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(onPressed: () => Navigator.pop(context), icon: Icon(CupertinoIcons.back,color:Theme.of(context).hintColor,)),
+        backgroundColor: Theme.of(context).primaryColorDark,
+        elevation: 0,
+        title: Text('Select to send',style: Theme.of(context).textTheme.bodyMedium,),
+      ),
       backgroundColor: Theme.of(context).primaryColorDark,
       body: BlocConsumer<ChatsCubit, ChatsState>(
         listener: (context, state) {

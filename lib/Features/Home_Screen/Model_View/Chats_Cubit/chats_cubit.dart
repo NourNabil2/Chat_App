@@ -27,7 +27,8 @@ class ChatsCubit extends Cubit<ChatsState> {
         .snapshots()
         .listen((event) {
       userIds = event.docs.map((e) => e.id).toList();
-      log("userIds: $userIds");
+      log("My userIds: $userIds");
+      getAllUsers(userIds);
       emit(getmyuserID(userIds: userIds));
     });
   }
@@ -57,22 +58,6 @@ class ChatsCubit extends Cubit<ChatsState> {
     },);
   }
 
-
-  List<ChatUser> alluserList = [];
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> allUsers() {
-    return APIs.firestore
-        .collection(kUsersCollections)
-        .snapshots()
-        .listen((event) {
-      alluserList = event.docs
-          .map((e) => ChatUser.fromJson(e.data()))
-          .toList();
-
-      log("Fetched Users: ${jsonEncode(alluserList)}");
-
-      emit(allUsersSucess(UserList: alluserList)); // Emit the list to update the UI
-    });
-  }
 
   void ChangeSearchIcon()
   {

@@ -576,16 +576,32 @@ class APIs {
       // Handle any error or show a user-friendly message
     }
   }
-  static Future<void> deleteStoryMedia({required String mediaId,required bool isVideo,}) async {
+  static Future<bool> deleteStoryMedia({
+    required String mediaId,
+    required bool isVideo,
+    required String mediaUrl,
+    required context,
+  }) async {
     try {
-      // Ensure that videos are saved as `.mp4` files
-      String ext = isVideo ? 'mp4' : 'jpg';
-      // Delete the media from Firestore
+      // Strip out query parameters from mediaUrl
+      String baseUrl = mediaUrl.split('?').first; // Removes "?alt=media&token=..."
+      String ext = baseUrl.split('.').last; // Extracts 'jpg' or 'mp4'
+
+      String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
+      String fullPath = '$fileType/${user.email} $mediaId.$ext'.trim();
+
+      log('Attempting to delete media at path: $fullPath');
+
+      // Delete from Firestore
       await firestore
           .collection('Status/${user.email}/media/')
           .doc(mediaId)
           .delete();
-      log('Media deleted from Firestore');
+      log('Media successfully deleted from Firestore');
+
+      // Delete from Firebase Storage
+      await storage.ref().child(fullPath).delete();
+      log('Media successfully deleted from Firebase Storage');
 
       // Get counts for public, private, and total stories
       final publicCountStream = getPublicStatusCount();
@@ -601,23 +617,16 @@ class APIs {
         'story_f': privateCount,
       });
 
-
-      // Delete the media from Firebase Storage (image or video)
-      String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
-      await storage
-          .ref()
-          .child('$fileType/${user.email} $mediaId.$ext')
-          .delete();
-      log('Media deleted from Firebase Storage');
-
-
-
-
+      return true;
     } catch (e) {
       log('Error deleting story media: $e');
-      // Handle any error or show a user-friendly message
+      Dialogs.showSnackbar(context,'$e');
+      return false;
     }
   }
+
+
+
 // Update profile picture of user
   static Stream<int> getPublicStatusCount() {
     return firestore
@@ -672,7 +681,7 @@ class APIs {
     String fileType = isVideo ? 'Story_videos' : 'Story_pictures';
     final ref = storage
         .ref()
-        .child('$fileType/${me.email} ${DateTime.now().millisecondsSinceEpoch}.$ext');
+        .child('$fileType/${me.email} $time.$ext');
 
     // Uploading media
     await ref.putFile(file, SettableMetadata(contentType: isVideo ? 'video/$ext' : 'image/$ext')).then((p0) {
@@ -714,9 +723,6 @@ class APIs {
 
 
   }
-
-
-
 
 // Retrieve public story images or videos
   static Stream<QuerySnapshot<Map<String, dynamic>>> getPublicStoryMedia(ChatUser user) {
@@ -765,7 +771,7 @@ class APIs {
 
   // for sending message
   static Future<void> sendMessage(ChatUser chatUser, String msg,
-      Type type) async {
+      Type? type ) async {
     //message sending time (also used as id)
     final time = DateTime
         .now()
@@ -777,7 +783,7 @@ class APIs {
         toId: chatUser.id,
         msg: msg,
         read: '',
-        type: type,
+        type: type ?? Type.text,
         fromId: user.uid,
         sent: time);
 

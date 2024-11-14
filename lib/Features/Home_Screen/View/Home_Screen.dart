@@ -24,33 +24,27 @@ class _HomeScreenState extends State<HomeScreen> {
       log('Message: $message');
 
       if (APIs.auth.currentUser != null) {
-        if (message.toString().contains('resume')) {
-          APIs.updateActiveStatus(true);
+        if (message.toString().contains('resume') && mounted) {
+          setState(() {
+            APIs.updateActiveStatus(true);
+          });
         }
-        if (message.toString().contains('pause')) {
-          APIs.updateActiveStatus(false);
+        if (message.toString().contains('pause') && mounted) {
+          setState(() {
+            APIs.updateActiveStatus(false);
+          });
         }
       }
       return Future.value(message);
     });
+
   }
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColorDark,
-      body: BlocConsumer<ChatsCubit,ChatsState>(
-                    listener: (context, state) {
-                      // if (APIs.me.userName == null)
-                      //   {
-                      //     Navigator.push(context, MaterialPageRoute(builder: (context) => ,));
-                      //   }
-                      if (state is getmyuserID )
-                        {
-                          BlocProvider.of<ChatsCubit>(context).getAllUsers(state.userIds);
-                        }
-                    },
-                    builder: (context, state) => chatsPage(controller: widget.controller,)),
+      body: chatsPage(controller: widget.controller,),
     );
   }
 

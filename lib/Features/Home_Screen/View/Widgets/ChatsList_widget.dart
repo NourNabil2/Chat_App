@@ -1,12 +1,12 @@
+
 import 'dart:developer';
+
 import 'package:chats/Core/widgets/Card_User.dart';
 import 'package:chats/Features/Home_Screen/Data/Users.dart';
 import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
-import 'package:chats/Features/Home_Screen/View/Widgets/AppBar_Sliver_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'AppBar_Sliver_widget.dart';
 
 // ignore: camel_case_types
 class chatsList extends StatefulWidget {
@@ -22,6 +22,7 @@ class _chatsListState extends State<chatsList> {
   List<ChatUser> searchList = []; // TODO
 @override
   void initState() {
+  log('-- chatsList initState');
   BlocProvider.of<ChatsCubit>(context).getMyUsersId();
     super.initState();
   }
@@ -29,10 +30,13 @@ class _chatsListState extends State<chatsList> {
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state is SearchIconState) {
-          BlocProvider.of<ChatsCubit>(context).getMyUsersId();
+        if (mounted) {
+          if (state is SearchIconState) {
+            BlocProvider.of<ChatsCubit>(context).getMyUsersId();
+          }
         }
       },
+
       builder: (context, state) {
 
         UserList = (state is getAlluser) ? state.UserList : [];

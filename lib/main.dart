@@ -5,6 +5,8 @@ import 'package:chats/Features/Chat_Screen/View/chat_page.dart';
 import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.dart';
 import 'package:chats/Features/Home_Screen/View/Home_Screen.dart';
 import 'package:chats/Features/Profile_Screen/View_Data/profile_cubit.dart';
+import 'package:chats/Features/Status_Screen/status_cubit.dart';
+import 'package:chats/my_bloc_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -41,6 +43,7 @@ void main() async {
       showBadge: true,
       enableVibration: true,
     );
+    Bloc.observer = MyBlocObserver();
     runApp(const MyApp());
   });
 }
@@ -55,9 +58,10 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => SignCubit()),
         BlocProvider(create: (context) => FreiendRequestCubit()),
         BlocProvider(create: (context) => ChatCubit()),
+        BlocProvider(create: (context) => StatusCubit()),
         BlocProvider(create: (context) => HomeCubit()),
         BlocProvider(create: (context) => ProfileCubit()),
-        BlocProvider(create: (context) => ChatsCubit()..getMyUsersId()),
+        BlocProvider(create: (context) => ChatsCubit()),
       ],
       child: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, state) {

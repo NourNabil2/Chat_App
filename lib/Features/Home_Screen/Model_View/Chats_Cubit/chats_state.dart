@@ -41,9 +41,4 @@ class getAlluser extends ChatsState {
 
 }
 
-class allUsersSucess extends ChatsState {
-  List<ChatUser> UserList;
 
-  allUsersSucess({required this.UserList});
-
-}
