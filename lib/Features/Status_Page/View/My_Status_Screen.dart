@@ -131,6 +131,9 @@ class _statusPageState extends State<MystatusPage> {
                 }
 
                 if (StatusList.isNotEmpty && storyItems.isNotEmpty) {
+                  List<String> viewersIds = StatusList
+                      .expand((status) => status.seen.map((id) => id.toString()))
+                      .toList();
                   return InteractiveViewer(
                     child: Stack(
                       children: [
@@ -163,7 +166,6 @@ class _statusPageState extends State<MystatusPage> {
                             child: GestureDetector(
                               onTap: () {
                                 // Extract the `fromId` values from each `Status` in `StatusList`
-                                List<String> viewersIds = StatusList.map((status) => status.fromId).toList();
                                 _showViewersSheet(viewersIds);
                               },
                               child: Container(
@@ -178,7 +180,7 @@ class _statusPageState extends State<MystatusPage> {
                                     Icon(Icons.visibility, color: Colors.white, size: 16),
                                     SizedBox(width: 5),
                                     Text(
-                                      "${StatusList.length ?? 0}",
+                                      "${viewersIds.length ?? 0}",
                                       style: TextStyle(color: Colors.white, fontSize: 14),
                                     ),
                                   ],
