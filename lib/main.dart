@@ -6,7 +6,6 @@ import 'package:chats/Features/Home_Screen/Model_View/Chats_Cubit/chats_cubit.da
 import 'package:chats/Features/Home_Screen/View/Home_Screen.dart';
 import 'package:chats/Features/Profile_Screen/View_Data/profile_cubit.dart';
 import 'package:chats/Features/Status_Screen/status_cubit.dart';
-import 'package:chats/my_bloc_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +42,6 @@ void main() async {
       showBadge: true,
       enableVibration: true,
     );
-    Bloc.observer = MyBlocObserver();
     runApp(const MyApp());
   });
 }
