@@ -19,6 +19,8 @@ class RegisterPage extends StatelessWidget {
 
   String? password;
 
+  String? email;
+
   bool isLoading = false;
 
   GlobalKey<FormState> formKey = GlobalKey();
@@ -99,6 +101,15 @@ class RegisterPage extends StatelessWidget {
                       },
                     ),
 
+                    CustomLoginTextField(
+                      validationRegEx: EMAIL_VALIDATION_REGEX,
+                      labelText: "Email",
+                      hintText: "email",
+                      onChanged: (value) {
+                        email = value;
+                      },
+                    ),
+
                     const SizedBox(
                       height: 10,
                     ),
@@ -118,7 +129,7 @@ class RegisterPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed:() async {
                         if (formKey.currentState!.validate()) {
-                          Cubit.registerUser(email: '$userName@chato.com', password: password! , userName: userName! );
+                          Cubit.registerUser(email: email!, password: password! , userName: userName! );
                         } else {}
                       },
                       style: ElevatedButton.styleFrom(

@@ -92,7 +92,12 @@ class SignCubit extends Cubit<SignState> {
       } else if (ex.code == 'email-already-in-use') {
         emit(RegisterError(messageError: 'Email already in use'));
       }
+      else {
+        log('ERORRRRRRR: ');
+        return;
+      }
     } catch (e) {
+      log('ERORRRRRRR: $e');
       emit(RegisterError(messageError: 'There was an error'));
     }
   }
@@ -123,6 +128,24 @@ class SignCubit extends Cubit<SignState> {
 
     }
   }
+
+  Future<void> sendPasswordResetEmail(String? email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email!);
+      log("Password reset email sent!");
+      // Show success message or navigate to confirmation screen
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        log("No user found for that email.");
+        // Show an appropriate error message to the user
+      } else {
+        log("Error: ${e.message}");
+        // Handle other errors
+      }
+    }
+  }
+
+
 
   handleGoogleBtnClick() {
 

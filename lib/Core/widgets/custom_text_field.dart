@@ -164,7 +164,13 @@ class _CustomLoginTextFieldState extends State<CustomLoginTextField> {
                   } else if (!RegExp(r".*\d.*").hasMatch(value)) {
                     return "Password must contain at least one number.";
                   }
-                }
+                } else if (widget.hintText!.toLowerCase() == "email")
+                  {
+                   if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(value) )
+                     {
+                       return "Please enter a valid email.";
+                     }
+                  }
 
                 // If all validations pass
                 return null;

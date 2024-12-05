@@ -5,6 +5,7 @@ import 'package:chats/Core/Utils/Colors.dart';
 import 'package:chats/Core/Utils/constants.dart';
 import 'package:chats/Core/widgets/custom_text_field.dart';
 import 'package:chats/Features/Auth_screen/Model_view/Sign_cubit.dart';
+import 'package:chats/Features/Auth_screen/View/ForgetPassword_Page.dart';
 import 'package:chats/Features/Home_Screen/View/MainScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -120,7 +121,20 @@ class Login extends StatelessWidget {
                             ),
                           ),
                         ),
-
+                        GestureDetector(
+                          onTap: () async {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordPage(),));
+                          },
+                          child: const Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                       ],
                     ),
