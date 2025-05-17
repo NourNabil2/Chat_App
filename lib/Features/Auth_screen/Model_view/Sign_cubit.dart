@@ -15,27 +15,28 @@ class SignCubit extends Cubit<SignState> {
 
   Future<void> loginUser({required String email ,required String password}) async {
       emit(LoginLoading());
-    try{
-      UserCredential user = await APIs.auth.signInWithEmailAndPassword(email: email, password: password);
-      if (user.user != null) {
-        emit(LoginSuccess());
-      } else {
-        emit(LoginErorr('user-not-found'));
-      }
+      // try{
+        UserCredential user = await APIs.auth.signInWithEmailAndPassword(email: email, password: password);
+        if (user.user != null) {
+          emit(LoginSuccess());
+        } else {
+          emit(LoginErorr('user-not-found'));
+        }
 
 
-    } on FirebaseAuthException catch (ex) {
-      if (ex.code == 'user-not-found') {
-        emit(LoginErorr('user-not-found'));
-      } else if (ex.code == 'wrong-password') {
-        emit(LoginErorr('wrong-password'));
-      }
-      else {
-        emit(LoginErorr('Wrong Email or Passwork'));
-      }
-    } catch (e) {
-      emit(LoginErorr('there was an error'));
-    }
+      // } on FirebaseAuthException catch (ex) {
+      //   if (ex.code == 'user-not-found') {
+      //     emit(LoginErorr('user-not-found'));
+      //   } else if (ex.code == 'wrong-password') {
+      //     emit(LoginErorr('wrong-password'));
+      //   }
+      //   else {
+      //     emit(LoginErorr('Wrong Email or Passwork'));
+      //   }
+      // } catch (e) {
+      //   log('LOGIN: $e');
+      //   emit(LoginErorr('there was an error'));
+      // }
 
   }
 

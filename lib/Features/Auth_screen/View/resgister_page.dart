@@ -40,7 +40,7 @@ class RegisterPage extends StatelessWidget {
         }
         else if (state is RegisterError)
         {
-          showSnackBar(context, state.messageError!);
+          showSnackBar(context, state.messageError);
         }
       },
       builder: (context, state) {
